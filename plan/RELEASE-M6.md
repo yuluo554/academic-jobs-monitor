@@ -56,8 +56,9 @@
 
 | 步骤 | 命令 | 结论 |
 |---|---|---|
-| 拍板 | truth.json 口径 / 邮箱处置 / D5 acabridge / 建仓推送 | ⬜ 待用户 |
-| tag | `git tag -a v0.1.0-m6 -m "..."`（须确认后打） | ⬜ |
+| 拍板 | truth.json 口径 / 邮箱处置 / D5 acabridge / 建仓推送 | ✅ 2026-10-14 用户拍板：truth.json **保留真名**（标注对象本体）；邮箱**重写历史为 noreply**；D5 **维持 5 源**；**确认发布** |
+| 邮箱重写 | `git-filter-repo --email-callback`（QQ 邮箱 → `yuluo554@users.noreply.github.com`，全 9 提交；备份 `/d/ProgramData/zcode/_m6_backup_pre_rewrite`） | ✅ `git log --all --format='%ae'` 仅剩 noreply；重写后 pytest 67 passed |
+| tag | `git tag -a v0.1.0-m6` | ⬜ |
 | 建仓推送 | `gh repo create yuluo554/academic-jobs-monitor --public --source . --push` | ⬜ |
 | CI 首跑 | Actions 页 push 数 = run 数逐条配对；首跑若挂修复补记 | ⬜ |
 | Release | `gh release create v0.1.0-m6 docs/screenshots/*.png docs/release-samples/*` | ⬜ |
