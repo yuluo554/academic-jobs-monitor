@@ -40,7 +40,7 @@ jobsctl web            # 启动本地面板（M5）
 | M3 | 字段抽取规则族 + 快照字段级 diff | ✅ |
 | M4 | 真值基准 + 订阅推送（RSS/HTML） | ✅ |
 | M5 | Web 面板 + CLI 双形态 + 技术报告 | ✅ |
-| M6 | GitHub Release 发布 | ⬜ |
+| M6 | GitHub Release 发布 | ✅ [v0.1.0-m6](https://github.com/yuluo554/academic-jobs-monitor/releases/tag/v0.1.0-m6) |
 
 ## 本地 Web 面板（双形态之一）
 

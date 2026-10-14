@@ -58,13 +58,14 @@
 |---|---|---|
 | 拍板 | truth.json 口径 / 邮箱处置 / D5 acabridge / 建仓推送 | ✅ 2026-10-14 用户拍板：truth.json **保留真名**（标注对象本体）；邮箱**重写历史为 noreply**；D5 **维持 5 源**；**确认发布** |
 | 邮箱重写 | `git-filter-repo --email-callback`（QQ 邮箱 → `yuluo554@users.noreply.github.com`，全 9 提交；备份 `/d/ProgramData/zcode/_m6_backup_pre_rewrite`） | ✅ `git log --all --format='%ae'` 仅剩 noreply；重写后 pytest 67 passed |
-| tag | `git tag -a v0.1.0-m6` | ⬜ |
-| 建仓推送 | `gh repo create yuluo554/academic-jobs-monitor --public --source . --push` | ⬜ |
-| CI 首跑 | Actions 页 push 数 = run 数逐条配对；首跑若挂修复补记 | ⬜ |
-| Release | `gh release create v0.1.0-m6 docs/screenshots/*.png docs/release-samples/*` | ⬜ |
-| 发布后复核 | 全新 clone 复跑 pytest + bench（exit 1 如实记录） | ⬜ |
+| tag | `git tag -a v0.1.0-m6` | ✅ 已打并随 push 同步 |
+| 建仓推送 | `gh repo create yuluo554/academic-jobs-monitor --public --source . --push`（网络抖动重试后 main + tag 均成功） | ✅ https://github.com/yuluo554/academic-jobs-monitor |
+| CI 首跑 | Actions 页 push 数 = run 数逐条配对 | ✅ run id **38594705592**，success，19s；触发数（main 1 次 push；tag 不触发）= run 数 1，对账一致。此前 GitHub 连接中断约数分钟（443 拒连，api.github.com 可达），重试后恢复，无影响 |
+| Release | `gh release create v0.1.0-m6 docs/screenshots/*.png docs/release-samples/*` | ✅ https://github.com/yuluo554/academic-jobs-monitor/releases/tag/v0.1.0-m6（附件 6 个：4 截图 + sample-feed.html + sample-feed.rss，ASCII 名） |
+| 发布后复核 | 全新 clone 复跑 pytest + bench（exit 1 如实记录） | ✅ `gh repo clone` → 新 venv → **pytest 67 passed**；bench overall 108/109 = 99.1%，**exit 1（扣分项仍在，如实记录）** |
 
 ## 五、诚实口径
 
-- bench exit 1（position 95.5%，『<实验室>主任』句式未覆盖）发布时**在**，不隐藏；
-- CI 首跑结论、run id 推送后据实回填 plan/06 尾注与本表。
+- bench exit 1（position 95.5%，『<实验室>主任』句式未覆盖）发布时**在**，发布后复核仍在（如实记录，不隐藏）；
+- CI 首跑 run id 38594705592（success，19s），已回填 plan/06 §四尾注；
+- 发布时实际推送的 hash 与本文件早期记录的开发期 hash 不同（邮箱重写导致全历史 hash 变更，备份见 §四拍板行）。
