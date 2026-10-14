@@ -6,11 +6,11 @@
 
 | # | 数据源 | 状态 | 实测要点 | 阻断原因 / 处置 |
 |---|---|---|---|---|
-| 1 | 高校人才网 gaoxiaojob.com | ✅ 已获取 | 可直连、静态返回；条目含标题/地点/发布日期/标签（如"事业编制""年薪41万"） | 深层列表 403 反爬 → 首期只取可直连层级；截止日期在详情页需二级抓取 |
-| 2 | 学术桥 zpjob.acabridge.cn | ✅ 已获取部分 | 可直连、初始列表服务端渲染 | "加载更多"走 XHR 需抓分页接口 → 留扩展项 |
-| 3 | 北京大学人事部 hr.pku.edu.cn | ✅ 已获取 | 静态 HTML，标题 + 日期 | — |
-| 4 | 复旦大学人事处 hr.fudan.edu.cn | ✅ 已获取 | 静态列表，/15364/list.htm 结构规整 | — |
-| 5 | 南京大学人力资源处 hr.nju.edu.cn | ✅ 已获取 | 静态列表 | — |
+| 1 | 高校人才网 gaoxiaojob.com | ✅ 已获取 | 可直连、静态返回；条目含标题/待遇/学历/学科/单位/城市（`/job/detail/<id>.html`） | **M1 复核（2026-10-14）**：原入口 `/zhaopin/index.html` 已 404、`/zhaopin/` 403；改用首页与 `/column/<id>.html` 栏目页（如北京 `/column/11.html`）。**列表页无每条发布日期**（需详情页二级抓取，首期 `published_on=None`）。深层列表 403 反爬仍有效 |
+| 2 | 学术桥 zpjob.acabridge.cn | ⬜ 受阻（M1 降级） | **M1 复核（2026-10-14）**：`zpjob.acabridge.cn` 302 跳 `www.acabridge.net/#/job`（换主域 + hash 路由 SPA），落地页被阿里云 WAF 滑块验证稳定拦截（3 轮独立请求 + 浏览器 UA 复测均中，无可解析条目） | 拦截页特征已固化为 `sources/fixtures/acabridge/waf_interstitial.html`；不绕过验证（合规红线）；适配器按"稳定失败隔离"实现，是否改判"首期 4 源"待拍板（plan/06） |
+| 3 | 北京大学人事部 hr.pku.edu.cn | ✅ 已获取 | 静态 HTML，标题 + 日期；M1 复核无变化（条目 `li > a[title="… 发布日期：YYYY-MM-DD"]`，日期以 title 属性为准） | — |
+| 4 | 复旦大学人事处 hr.fudan.edu.cn | ✅ 已获取 | 静态列表，/15364/list.htm 结构规整；M1 复核无变化（`a.column-news-item` + 标题/日期 span） | — |
+| 5 | 南京大学人力资源处 hr.nju.edu.cn | ✅ 已获取 | 静态列表；M1 复核无变化（`li.news` + `news_title`/`news_meta`，标题以 a 的 title 属性为准） | 首页混有非招聘类通知公告 → M3 抽取层分类 |
 | 6 | 清华大学人事部 hr.tsinghua.edu.cn | ⬜ 待获取 | 访问 307 跳转统一认证 | 认证墙 → 首期不纳入（决策记录：弃"全量高校人事处覆盖"） |
 | 7 | 浙江大学人才招聘网 talent.zju.edu.cn | ⬜ 待获取 | ECONNREFUSED | 疑封禁 → 首期不纳入 |
 | 8 | 青塔人才 hijob.cn | ⬜ 待获取 | 证书过期 | 阻断，暂不处置 |
@@ -18,6 +18,7 @@
 | — | 研招网 yz.chsi.com.cn | ✅ 已获取部分 | 部分区块可解析 | 部分区块 Vue 渲染需 JS → 留扩展项 |
 
 **首期底座（设计决策，5 源）**：高校人才网 + 学术桥 + 北大 + 复旦 + 南大。
+**M1 复核后口径（2026-10-14）**：适配器仍 5 源注册（含 acabridge），但 acabridge 预期稳定失败隔离（WAF），实际可产条目为 4 源；acabridge 的正式去留登记 plan/06 决策记录。逐源解析假设与边界样例见 `src/ajm/sources/fixtures/<source_id>/notes.md`。
 
 ## 二、依据查证记录
 
