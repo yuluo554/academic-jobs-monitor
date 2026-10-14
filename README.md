@@ -50,7 +50,9 @@ jobsctl web                 # 默认 http://127.0.0.1:8000（--host/--port 可�
 
 - **只读面板**：条目列表（快照库）/ 变更时间线（`?url=` 出单条全历史）/ 订阅预览 / 基准报告；抓取仍走 `jobsctl snapshot`；
 - **双形态同源**：与 CLI 共享同一编排函数组（`webapp/views.py` 单一事实源），三方对账测试断言 CLI stdout = 直调视图函数 = 面板渲染一致；
-- 零外链内联单页，断网可演示；`/docs` 关闭；演示截图见 [docs/](docs/)（M6 Release 附）。
+- 零外链内联单页，断网可演示；`/docs` 关闭；演示截图见
+  [docs/screenshots/](docs/screenshots/)（条目列表 / 时间线 / 订阅 / 基准四页），
+  推送样例见 [docs/release-samples/](docs/release-samples/)（`sample-feed.html` / `sample-feed.rss`）。
 
 技术设计详见 [docs/技术报告.md](docs/技术报告.md)（适配器失败隔离/规则族与 pending 纪律/字段级 diff/基准口径/合规红线）。
 
