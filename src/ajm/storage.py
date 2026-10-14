@@ -170,6 +170,11 @@ class Storage:
         ).fetchall()
         return {r["url"]: int(r["removed_since"]) for r in rows}
 
+    def all_titles(self) -> dict[str, str]:
+        """url → 最新标题（订阅匹配域之一；CLI feed 与 webapp 订阅预览共用）。"""
+        rows = self._conn.execute("SELECT url, title FROM snapshots").fetchall()
+        return {r["url"]: r["title"] for r in rows}
+
     def get_snapshot(self, url: str) -> sqlite3.Row | None:
         return self._conn.execute(
             "SELECT * FROM snapshots WHERE url = ?", (url,)

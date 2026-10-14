@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 
 import pytest
@@ -130,7 +132,7 @@ def test_storage_round_and_event_timeline(tmp_path) -> None:
 
 def test_cli_sources_and_milestone_gates(capsys) -> None:
     assert main(["sources"]) == 0
-    # extract 已在 M3 实现（fixture 回放演示）；bench/feed 已在 M4 实现；web 仍按里程碑返回 2
+    # extract 已在 M3 实现（fixture 回放演示）；bench/feed 已在 M4 实现
     assert main(["extract", "--fixture", "gaoxiaojob"]) == 0
     out = capsys.readouterr().out
     assert "registered deadline rules" in out
@@ -138,6 +140,9 @@ def test_cli_sources_and_milestone_gates(capsys) -> None:
     assert main(["feed"]) == 2
     captured = capsys.readouterr()
     assert "no subscriptions configured" in captured.out + captured.err
-    assert main(["web"]) == 2
-    out = capsys.readouterr().out
-    assert "not implemented" in out
+    # web 已在 M5 实现（uvicorn 起服务）；单测只验 --help 门禁，不真实监听（K7 离线）
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf), pytest.raises(SystemExit) as exc:
+        main(["web", "--help"])
+    assert exc.value.code == 0
+    assert "--port" in buf.getvalue()

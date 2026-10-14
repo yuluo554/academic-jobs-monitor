@@ -226,10 +226,7 @@ def _cmd_feed(args: argparse.Namespace) -> int:
         if not events:
             print("(no events to feed)")
             return 0
-        titles = {
-            row["url"]: row["title"]
-            for row in storage._conn.execute("SELECT url, title FROM snapshots").fetchall()
-        }
+        titles = storage.all_titles()
         matched = match_events(sub, events, titles)
         entries = [
             FeedEntry(event=ev, title=titles.get(ev.url, ev.detail.get("title", ev.url)))
@@ -299,9 +296,13 @@ def _cmd_bench(_: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_web(_: argparse.Namespace) -> int:
-    print("web: not implemented yet (M5)")
-    return 2
+def _cmd_web(args: argparse.Namespace) -> int:
+    """启动本地 Web 面板（M5）：只读快照库视图，与 CLI 共享同一编排函数。"""
+    from webapp.app import run as run_webapp
+
+    print(f"web: http://{args.host}:{args.port}  (Ctrl+C 退出)")
+    run_webapp(host=args.host, port=args.port)
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -350,7 +351,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("bench", help="内置基准：真值抽取 + 受控变更样本（M4）").set_defaults(
         func=_cmd_bench
     )
-    sub.add_parser("web", help="启动本地 Web 面板（M5）").set_defaults(func=_cmd_web)
+    p_web = sub.add_parser("web", help="启动本地 Web 面板（M5）")
+    p_web.add_argument("--host", default="127.0.0.1", help="监听地址（默认仅本机）")
+    p_web.add_argument("--port", type=int, default=8000, help="监听端口（默认 8000）")
+    p_web.set_defaults(func=_cmd_web)
     return parser
 
 
