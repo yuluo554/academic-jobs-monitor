@@ -64,3 +64,28 @@ cd <项目根>
 ```
 /goal 读取 "<项目绝对路径>\plan\HANDOFF-M2.md" 继续完成任务
 ```
+
+## 八、M2 完成记录（2026-10-14 当轮回填）
+
+1. **5 源适配器已实现**：`sources/{gaoxiaojob,pku,fudan,nju,acabridge}.py` 各自独立模块实现 `SourceAdapter` 协议（K5 不共享解析假设）；公共解析层 `sources/_htmlutil.py`（标准库 html.parser → 轻量 DOM 节点树，含 malformed HTML 容错回退）只做"HTML → 节点流"，无站点假设、无启发式兜底。
+2. **registry 注册完成**：`sources/__init__.py` 集中登记 5 工厂；`jobsctl sources` 输出 5 行（acabridge/fudan/gaoxiaojob/nju/pku）。
+3. **口径拍板（plan/06 M2 决策行）**：新增 `FailureCode.WAF_BLOCKED`（acabridge WAF 拦截单列，不用 `http_error`）；pku 外链（postdocs 他域）整条跳过；nju 无日期导航条目整条跳过；gaoxiaojob 全部 `published_on=None`。
+4. **fixture 回放测试**：`tests/test_adapters.py` 8 个测试——4 源回放（含边界样例：pku 外链跳过、nju 无日期跳过且标题取 title 属性非截断文本、gaoxiaojob 4 条目无日期）+ acabridge WAF 失败隔离断言 + registry 5 源断言 + 5 源 HTTP 失败透传参数化。测试经 `FakeFetcher` 回放，零真实网络（K7）。
+5. **真实抓取 1 轮演示**（`jobsctl crawl`，2026-10-14）：
+   - `[OK] fudan: 14 items`；`[OK] gaoxiaojob: 60 items`；`[OK] nju: 24 items`；`[OK] pku: 18 items`（pku 跳过 1 条外链，nju 跳过 6 条无日期导航条目——真实页与 fixture 假设一致）；
+   - `[FAIL] acabridge: waf_blocked — aliyun_waf_interstitial`（合规：不绕过）；
+   - `round summary: 4/5 sources ok; failure codes: {'waf_blocked': 1}`，exit=0。
+6. **验证**：pytest **24 passed**（13 旧 + 11 新，含参数化）；ruff 全绿。仍为本地等价校验（诚实口径，plan/06 尾注；D1 建仓仍缓议）。
+7. **交棒**：`plan/HANDOFF-M3.md`（M3 = 字段抽取 + 快照/变更检测）。
+
+## 九、M2 DoD checklist
+
+| 项 | 证据 |
+|---|---|
+| 5 源适配器实现 SourceAdapter 协议 | sources/ 下 5 独立模块 + base.py 协议契约 |
+| registry 注册 / `jobsctl sources` = 5 | sources/__init__.py；本轮命令输出 5 行 |
+| fetch.py 接线（限频 3s K4 不动） | 适配器仅经 `fetcher.get`，无自建 HTTP |
+| fixture 回放测试含边界样例 | tests/test_adapters.py（8 测试）；pytest 24 passed |
+| acabridge 失败隔离 | WAF_BLOCKED 原因码 + 真实抓取 [FAIL] 隔离演示 |
+| 真实抓取 1 轮演示 | 本文件第八节第 5 条输出记录 |
+| HANDOFF-M3 | plan/HANDOFF-M3.md |

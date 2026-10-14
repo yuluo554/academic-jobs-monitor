@@ -69,6 +69,7 @@ class FailureCode(_StrEnum):
     TIMEOUT = "timeout"
     HTTP_ERROR = "http_error"
     ROBOTS_DISALLOWED = "robots_disallowed"
+    WAF_BLOCKED = "waf_blocked"  # 反爬拦截页（acabridge 阿里云 WAF，禁止绕过，失败隔离）
     PARSE_EMPTY = "parse_empty"
     ENCODING_ERROR = "encoding_error"
     UNKNOWN = "unknown"
