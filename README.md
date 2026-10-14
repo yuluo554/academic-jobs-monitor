@@ -22,7 +22,10 @@ pip install -e .[dev]
 jobsctl --help
 jobsctl sources        # 查看已注册适配器
 jobsctl crawl          # 抓取一轮（限频 3s/源，UA 自标识）
-jobsctl bench          # 运行内置基准（M4）
+jobsctl snapshot       # 抓取一轮 → 抽取 → 快照 diff 事件
+jobsctl timeline       # 查询变更时间线
+jobsctl bench          # 运行内置基准（真值抽取 + 变更检测，离线）
+jobsctl feed           # 订阅匹配 → RSS/HTML 摘要（先复制 subscribe.example.yaml 为 subscribe.yaml）
 jobsctl web            # 启动本地面板（M5）
 ```
 
@@ -33,15 +36,35 @@ jobsctl web            # 启动本地面板（M5）
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
 | M1 | 数据源可获取性实测 + 依据查证 | ✅ |
-| M2 | 5 源抓取适配器 + 失败隔离 | ⬜ |
-| M3 | 字段抽取规则族 + 快照字段级 diff | ⬜ |
-| M4 | 真值基准 + 订阅推送（RSS/HTML） | ⬜ |
+| M2 | 5 源抓取适配器 + 失败隔离 | ✅ |
+| M3 | 字段抽取规则族 + 快照字段级 diff | ✅ |
+| M4 | 真值基准 + 订阅推送（RSS/HTML） | ✅ |
 | M5 | Web 面板 + CLI 双形态 + 技术报告 | ⬜ |
 | M6 | GitHub Release 发布 | ⬜ |
 
 ## 基准指标口径
 
-（M4 落地时在此给出逐字段准确率的精确定义、真值库规模与复核方式。）
+**一条命令**：`jobsctl bench`（离线可复跑；权威定义见 [bench/README.md](bench/README.md)）。
+
+**真值抽取基准**（`bench/fixtures/truth.json`，v1 共 27 例：真实公告列表页条目 +
+deadline 规则族真实句式样例，人工标注、`annotated_at` 可回溯）：
+
+- 真值非空：verified 值相等记对；ambiguous 且真值 ∈ candidates 记对（单独计数）；
+  pending 或值不等记错；
+- 真值 null（公告可见信息中不存在该字段）：pending 记对，verified/ambiguous 记错
+  （臆测即扣分，K5/K6）；
+- 相对期限样例：正确行为是 pending + 证据保留，不计入分母（K6）；
+- 非招聘条目只对账分类，不进字段分母（与生产编排一致）。
+
+**变更检测基准**（`bench/fixtures/change_cases/`）：多轮受控构造走
+`SnapshotPipeline` 生产路径，期望事件全检出且期望之外零事件（误报）才通过；
+含"删除后复现""截止日改期""（更新）后缀非变更"边界。
+
+**可证伪探活**：测试注入缺陷（删一条 deadline 规则）→ 基准必须报未达标。
+
+**当前基准（2026-10-14）**：position 95.5%（『<实验室>主任招聘公告』句式未覆盖，
+诚实缺口不隐藏）、organization / discipline / compensation / deadline 100%，
+overall 108/109 = 99.1%；分类 5/5；变更样本 11 期望全检出、零误报。
 
 ## 合规与隐私
 

@@ -130,12 +130,14 @@ def test_storage_round_and_event_timeline(tmp_path) -> None:
 
 def test_cli_sources_and_milestone_gates(capsys) -> None:
     assert main(["sources"]) == 0
-    # extract 已在 M3 实现（fixture 回放演示）；feed/bench/web 仍按里程碑返回 2
+    # extract 已在 M3 实现（fixture 回放演示）；bench/feed 已在 M4 实现；web 仍按里程碑返回 2
     assert main(["extract", "--fixture", "gaoxiaojob"]) == 0
     out = capsys.readouterr().out
     assert "registered deadline rules" in out
+    # feed：未配置订阅文件 → 提示后返回 2（订阅是用户私有配置）
     assert main(["feed"]) == 2
-    assert main(["bench"]) == 2
+    captured = capsys.readouterr()
+    assert "no subscriptions configured" in captured.out + captured.err
     assert main(["web"]) == 2
     out = capsys.readouterr().out
     assert "not implemented" in out

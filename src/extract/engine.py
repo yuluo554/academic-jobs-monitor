@@ -33,6 +33,14 @@ def _snippet(text: str, start: int, end: int) -> str:
     return text[lo:hi].replace("\n", " ").strip()
 
 
+# 标题句式"招聘<N>名<岗位名>"中的招聘人数前缀不是岗位名组成部分（真值标注口径）。
+_HEADCOUNT_PREFIX = re.compile(r"^\d+\s*名")
+
+
+def _strip_headcount(value: str) -> str:
+    return _HEADCOUNT_PREFIX.sub("", value).strip(" ：:，,、") or value
+
+
 def _resolve_date(m: str) -> date | None:
     """归一化 Y/M/D 为 date；非法组合（如 13 月）返回 None → pending，不臆测。"""
     parts = re.split(r"[-/.]", m) if "-" in m or "/" in m or "." in m else []
@@ -193,35 +201,39 @@ def extract_posting(item: RawItem, body_text: str = "") -> JobPosting:
 
     structured = _structured_fields(item)
 
-    # 岗位：extra 结构化 > 标题锚
+    # 岗位：extra 结构化 > 标题锚（岗位名是标题层信息；正文"招聘"词易误挂截止
+    # 句式，bench 真值 dry-run 实证——position 锚不扫正文，M4 口径，plan/06 登记）。
     if "position" in structured:
         position = structured["position"]
     else:
         cands = [
-            m.group("pos").strip(" ：:，,、")
-            for m in rules.POSITION_TITLE_RE.finditer(search_text)
+            _strip_headcount(m.group("pos").strip(" ：:，,、"))
+            for m in rules.POSITION_TITLE_RE.finditer(title)
         ]
         cands = [c for c in cands if len(c) >= 2]
-        pos_span = rules.POSITION_TITLE_RE.search(search_text)
+        pos_span = rules.POSITION_TITLE_RE.search(title)
         position = (
             _from_candidates(
                 "position", cands, "position_title_anchor",
-                _snippet(search_text, pos_span.start(), pos_span.end()) if pos_span else "",
+                _snippet(title, pos_span.start(), pos_span.end()) if pos_span else "",
             )
             if cands
             else ExtractedField.unextracted("position")
         )
 
-    # 单位：extra > 标题机构后缀锚
+    # 单位：extra > 标题机构后缀锚（同为标题层信息，不扫正文；年份前缀剥离）
     if "organization" in structured:
         organization = structured["organization"]
     else:
-        cands = [m.group("org") for m in rules.ORG_TITLE_RE.finditer(search_text)]
-        org_span = rules.ORG_TITLE_RE.search(search_text)
+        cands = [
+            rules.strip_org_year_prefix(m.group("org"))
+            for m in rules.ORG_TITLE_RE.finditer(title)
+        ]
+        org_span = rules.ORG_TITLE_RE.search(title)
         organization = (
             _from_candidates(
                 "organization", cands, "org_title_anchor",
-                _snippet(search_text, org_span.start(), org_span.end()) if org_span else "",
+                _snippet(title, org_span.start(), org_span.end()) if org_span else "",
             )
             if cands
             else ExtractedField.unextracted("organization")

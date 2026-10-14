@@ -196,14 +196,107 @@ def _cmd_timeline(args: argparse.Namespace) -> int:
         storage.close()
 
 
-def _cmd_feed(_: argparse.Namespace) -> int:
-    print("feed: not implemented yet (M4)")
-    return 2
+def _cmd_feed(args: argparse.Namespace) -> int:
+    """订阅匹配 → RSS + HTML 摘要落盘（cache/feeds/；题面任务 4）。
+
+    匹配域：最近一轮事件（缺省）或 --url 指定条目的全历史；
+    标题从快照库补齐；未配置订阅文件时提示并返回 2。
+    """
+
+    from subscribe import FeedEntry, SubscriptionConfig, match_events, render_html, render_rss
+
+    cfg: AppConfig = default_config()
+    sub = SubscriptionConfig.from_file(cfg.subscribe_file)
+    if not sub.rules:
+        print(
+            f"no subscriptions configured: copy subscribe.example.yaml to "
+            f"{cfg.subscribe_file} and edit it",
+            file=sys.stderr,
+        )
+        return 2
+
+    storage = Storage(cfg.db_path)
+    try:
+        if args.url:
+            events = storage.events_for_url(args.url)
+            round_no = None
+        else:
+            round_no = storage.current_round()
+            events = storage.events_for_round(round_no) if round_no else []
+        if not events:
+            print("(no events to feed)")
+            return 0
+        titles = {
+            row["url"]: row["title"]
+            for row in storage._conn.execute("SELECT url, title FROM snapshots").fetchall()
+        }
+        matched = match_events(sub, events, titles)
+        entries = [
+            FeedEntry(event=ev, title=titles.get(ev.url, ev.detail.get("title", ev.url)))
+            for hits in matched.values()
+            for ev in hits
+        ]
+    finally:
+        storage.close()
+
+    feed_dir = cfg.storage_dir / "feeds"
+    feed_dir.mkdir(parents=True, exist_ok=True)
+    stamp = f"round{round_no}" if round_no else "url-history"
+    rss_path = feed_dir / f"feed-{stamp}.xml"
+    html_path = feed_dir / f"feed-{stamp}.html"
+    rss_path.write_text(
+        render_rss(entries, channel_title="学术招聘监控推送", channel_link="https://localhost/"),
+        encoding="utf-8",
+    )
+    html_path.write_text(
+        render_html(entries, channel_title="学术招聘监控推送"), encoding="utf-8"
+    )
+    print(f"rules: {len(sub.rules)}, matched entries: {len(entries)}")
+    for rule_name, hits in matched.items():
+        print(f"  [{rule_name}] {len(hits)} hits")
+    print(f"rss:  {rss_path}")
+    print(f"html: {html_path}")
+    return 0
 
 
 def _cmd_bench(_: argparse.Namespace) -> int:
-    print("bench: not implemented yet (M4)")
-    return 2
+    """内置基准：真值抽取逐字段准确率 + 受控变更样本检出（题面任务 5）。"""
+    from bench.change_cases import run_change_cases
+    from bench.truth import run_truth
+
+    report = run_truth()
+    print("== 真值抽取基准（bench/fixtures/truth.json）==")
+    field_scores = report.field_scores()
+    for name, s in field_scores.items():
+        print(
+            f"  {name:<13} {s['correct']}/{s['total']} = {s['accuracy']:.1%}"
+            f"  (ambiguous_right={s['ambiguous_right']}, miss={s['miss_should_verify']},"
+            f" hallucinated={s['hallucinated']})"
+        )
+    total = sum(s["total"] for s in field_scores.values())
+    correct = sum(s["correct"] for s in field_scores.values())
+    print(
+        f"  overall {correct}/{total} = {report.overall_accuracy():.1%}; "
+        f"classification {report.classified_correct}/{report.classified_total}"
+    )
+    for failure in report.failures:
+        print(f"  [MISS] {failure}")
+
+    print("\n== 变更检测基准（bench/fixtures/change_cases）==")
+    all_ok = True
+    for name, change_report in run_change_cases():
+        all_ok = all_ok and change_report.ok
+        print(f"  {name}: {change_report.summary()}")
+        for miss in change_report.missed:
+            print(f"    [MISSED] {miss}")
+        for fp in change_report.false_positives:
+            print(f"    [FALSE-POSITIVE] {fp}")
+    failures = len(report.failures)
+    if failures or not all_ok:
+        print(f"\nbench: NOT PASSED ({failures} truth failures, change_cases ok={all_ok})")
+        return 1
+    print(f"\nbench: PASSED (overall {report.overall_accuracy():.1%}, 阈值口径见 README)")
+    return 0
 
 
 def _cmd_web(_: argparse.Namespace) -> int:
@@ -248,7 +341,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_tl = sub.add_parser("timeline", help="查询变更时间线（M3）")
     p_tl.add_argument("--url", default="", help="指定 URL 查询；缺省打印最近一轮全部事件")
     p_tl.set_defaults(func=_cmd_timeline)
-    sub.add_parser("feed", help="生成 RSS / HTML 摘要（M4）").set_defaults(func=_cmd_feed)
+    sub.add_parser("feed", help="订阅匹配 → RSS/HTML 摘要（M4）")
+    p_feed_url = sub.choices["feed"]
+    p_feed_url.add_argument(
+        "--url", default="", help="指定 URL 出其全历史事件的订阅命中；缺省用最近一轮"
+    )
+    p_feed_url.set_defaults(func=_cmd_feed)
     sub.add_parser("bench", help="内置基准：真值抽取 + 受控变更样本（M4）").set_defaults(
         func=_cmd_bench
     )

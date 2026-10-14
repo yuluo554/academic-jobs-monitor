@@ -1,0 +1,93 @@
+{
+  "_meta": {
+    "name": "change-detection-baseline",
+    "version": 1,
+    "annotated_at": "2026-10-14",
+    "scope": "同一页面集合多轮受控构造（离线，走 SnapshotPipeline 生产代码路径），覆盖四类事件与去抖/复现边界",
+    "url_convention": "全部 example.invalid 合成域名 + 假名白名单单位名（K8）；事件期望 kind+url 必填，detail_contains 可选（detail 子串断言）",
+    "no_false_positive_rule": "每轮显式登记 quiet_rounds：该轮除列出的期望事件外不得有任何事件"
+  },
+  "cases": [
+    {
+      "name": "four_event_kinds_with_debounce_and_reappear",
+      "description": "四类事件全检出：NEW_POSTING、DEADLINE_CHANGED（截止日改期）、ANNOUNCEMENT_REMOVED（去抖 N=3）、CONTENT_CHANGED（删除后复现 + hash 变字段无 diff）",
+      "rounds": [
+        {
+          "items": [
+            {"url": "https://example.invalid/r1/j1.htm", "source": "pku", "title": "示例大学化学学院招聘启事", "body_text": "报名截止：2026-12-01。"},
+            {"url": "https://example.invalid/r1/j2.htm", "source": "pku", "title": "示例研究院诚聘博士后"},
+            {"url": "https://example.invalid/r1/j3.htm", "source": "pku", "title": "示例大学光纤研究中心招聘公告", "body_text": "长期有效。"},
+            {"url": "https://example.invalid/r1/n1.htm", "source": "pku", "title": "关于做好2026年下半年教师资格认定工作的通知"}
+          ],
+          "expect": [
+            {"kind": "new_posting", "url": "https://example.invalid/r1/j1.htm"},
+            {"kind": "new_posting", "url": "https://example.invalid/r1/j2.htm"},
+            {"kind": "new_posting", "url": "https://example.invalid/r1/j3.htm"}
+          ]
+        },
+        {
+          "items": [
+            {"url": "https://example.invalid/r1/j1.htm", "source": "pku", "title": "示例大学化学学院招聘启事", "body_text": "报名截止：2026-11-15。"},
+            {"url": "https://example.invalid/r1/j4.htm", "source": "pku", "title": "示例学院公开招聘实验技术人员"}
+          ],
+          "expect": [
+            {"kind": "deadline_changed", "url": "https://example.invalid/r1/j1.htm", "detail_contains": "2026-12-01 -> 2026-11-15"},
+            {"kind": "new_posting", "url": "https://example.invalid/r1/j4.htm"}
+          ]
+        },
+        {
+          "items": [],
+          "expect": []
+        },
+        {
+          "items": [
+            {"url": "https://example.invalid/r1/j3.htm", "source": "pku", "title": "示例大学光纤研究中心招聘公告", "body_text": "长期有效，待遇从优。"}
+          ],
+          "expect": [
+            {"kind": "content_changed", "url": "https://example.invalid/r1/j3.htm", "detail_contains": "missed_then_reappeared"},
+            {"kind": "content_changed", "url": "https://example.invalid/r1/j3.htm", "detail_contains": "compensation"},
+            {"kind": "announcement_removed", "url": "https://example.invalid/r1/j2.htm", "detail_contains": "consecutive_missing_rounds"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hash_changed_no_field_diff",
+      "description": "正文实质变更但字段级无 diff：仍须记 CONTENT_CHANGED（事件不丢失，diff 纪律）",
+      "rounds": [
+        {
+          "items": [
+            {"url": "https://example.invalid/h/h1.htm", "source": "fudan", "title": "示例大学全球史研究院招聘启事", "body_text": "岗位待遇按学校统一标准执行。"}
+          ],
+          "expect": [{"kind": "new_posting", "url": "https://example.invalid/h/h1.htm"}]
+        },
+        {
+          "items": [
+            {"url": "https://example.invalid/h/h1.htm", "source": "fudan", "title": "示例大学全球史研究院招聘启事", "body_text": "岗位待遇按学校统一标准执行，面向海内外优秀青年学者。"}
+          ],
+          "expect": [
+            {"kind": "content_changed", "url": "https://example.invalid/h/h1.htm", "detail_contains": "hash_changed_no_field_diff"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "update_suffix_is_not_change",
+      "description": "pku 边界（M1 预警）：标题追加『（更新）』后缀不是内容变更，第二轮必须零事件",
+      "rounds": [
+        {
+          "items": [
+            {"url": "https://example.invalid/u/u1.htm", "source": "pku", "title": "2026年示例大学生命科学学院教学科研岗位招聘启事"}
+          ],
+          "expect": [{"kind": "new_posting", "url": "https://example.invalid/u/u1.htm"}]
+        },
+        {
+          "items": [
+            {"url": "https://example.invalid/u/u1.htm", "source": "pku", "title": "2026年示例大学生命科学学院教学科研岗位招聘启事（更新）"}
+          ],
+          "expect": []
+        }
+      ]
+    }
+  ]
+}

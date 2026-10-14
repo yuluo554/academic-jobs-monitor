@@ -1,0 +1,275 @@
+{
+  "_meta": {
+    "name": "extraction-truth",
+    "version": 1,
+    "annotated_at": "2026-10-14",
+    "scope": "5 源（acabridge WAF 阻断，合规不绕过）真实公告列表页条目 + deadline 规则族真实句式样例，人工标注 5 字段真值",
+    "url_convention": "pku 详情页 hash 文件名按 M1 口径替换为合成值（aa000…）；其余源 URL 为真实回溯地址；个人信息均不出现在本文件",
+    "discipline": "真值 = 公告可见信息人工判读；判定口径见 README『基准指标口径』节；真值库含真实院校名是题面纪律（真实 URL + 人工标注可回溯），发布脱敏在 M6 处理",
+    "null_convention": "字段值 null = 可见信息中不存在该字段，正确行为是 pending（不臆测）；标注非 null 的字段才计准确率（分母）",
+    "category_note": "『教学科研岗位』等类别词不标注为 position（非具体岗位名称，人工口径）"
+  },
+  "cases": [
+    {
+      "url": "https://www.gaoxiaojob.com/job/detail/1634456.html",
+      "source": "gaoxiaojob",
+      "title": "博士后",
+      "published_on": null,
+      "annotated_at": "2026-10-14",
+      "extra": {"position": "博士后", "compensation": "面议", "discipline": "化学", "degree": "博士研究生", "headcount": "若干人", "org": "中国科学院大学", "city": "北京"},
+      "evidence": {"position": "列表页 h6『博士后』", "organization": "列表页 .school", "discipline": "列表页 .requirement span", "compensation": "列表页 .money"},
+      "truth": {"position": "博士后", "organization": "中国科学院大学", "discipline": "化学", "compensation": "面议", "deadline": null}
+    },
+    {
+      "url": "https://www.gaoxiaojob.com/job/detail/2044337.html",
+      "source": "gaoxiaojob",
+      "title": "博士后/特别研究助理-绿色低碳循环研究团队",
+      "published_on": null,
+      "annotated_at": "2026-10-14",
+      "extra": {"position": "博士后/特别研究助理-绿色低碳循环研究团队", "compensation": "面议", "discipline": "生物学", "degree": "博士研究生", "headcount": "1人", "org": "中国科学院大学", "city": "北京"},
+      "evidence": {"position": "列表页 h6", "organization": "列表页 .school", "discipline": "列表页 span", "compensation": "列表页 .money"},
+      "truth": {"position": "博士后/特别研究助理-绿色低碳循环研究团队", "organization": "中国科学院大学", "discipline": "生物学", "compensation": "面议", "deadline": null}
+    },
+    {
+      "url": "https://www.gaoxiaojob.com/job/detail/1785877.html",
+      "source": "gaoxiaojob",
+      "title": "博士后-邓子厚实验室",
+      "published_on": null,
+      "annotated_at": "2026-10-14",
+      "extra": {"position": "博士后-邓子厚实验室", "compensation": "面议", "discipline": "基础医学等", "degree": "博士研究生", "headcount": "2人", "org": "首都医学科学创新中心", "city": "北京"},
+      "evidence": {"position": "列表页 h6", "organization": "列表页 .school", "discipline": "列表页 span", "compensation": "列表页 .money"},
+      "truth": {"position": "博士后-邓子厚实验室", "organization": "首都医学科学创新中心", "discipline": "基础医学等", "compensation": "面议", "deadline": null}
+    },
+    {
+      "url": "https://www.gaoxiaojob.com/job/detail/2028693.html",
+      "source": "gaoxiaojob",
+      "title": "博士后-汪海波课题组",
+      "published_on": null,
+      "annotated_at": "2026-10-14",
+      "extra": {"position": "博士后-汪海波课题组", "compensation": "23-41万/年", "discipline": "生物学等", "degree": "博士研究生", "headcount": "若干人", "org": "北京大学临床医学高等研究院", "city": "北京"},
+      "evidence": {"position": "列表页 h6", "organization": "列表页 .school", "discipline": "列表页 span", "compensation": "列表页 .money『23-41万/年』"},
+      "truth": {"position": "博士后-汪海波课题组", "organization": "北京大学临床医学高等研究院", "discipline": "生物学等", "compensation": "23-41万/年", "deadline": null}
+    },
+    {
+      "url": "https://www.gaoxiaojob.com/job/detail/2118813.html",
+      "source": "gaoxiaojob",
+      "title": "光学精密测量工程实验技术岗（初级工程师）",
+      "published_on": null,
+      "annotated_at": "2026-10-14",
+      "extra": {"position": "光学精密测量工程实验技术岗（初级工程师）", "compensation": "1.2-1.5万/月", "discipline": "动力工程及工程热物理等", "degree": "硕士研究生", "headcount": "若干人", "org": "北京清华前沿交叉创新研究院", "city": "北京"},
+      "evidence": {"position": "列表页 h6", "organization": "列表页 .school", "discipline": "列表页 span", "compensation": "列表页 .money"},
+      "truth": {"position": "光学精密测量工程实验技术岗（初级工程师）", "organization": "北京清华前沿交叉创新研究院", "discipline": "动力工程及工程热物理等", "compensation": "1.2-1.5万/月", "deadline": null}
+    },
+    {
+      "url": "https://www.gaoxiaojob.com/job/detail/2301888.html",
+      "source": "gaoxiaojob",
+      "title": "综合业务主管",
+      "published_on": null,
+      "annotated_at": "2026-10-14",
+      "extra": {"position": "综合业务主管", "compensation": "面议", "discipline": "物理学等", "degree": "硕士研究生", "headcount": "1人", "org": "中国科学院物理研究所", "city": "北京"},
+      "evidence": {"position": "列表页 h6", "organization": "列表页 .school", "discipline": "列表页 span", "compensation": "列表页 .money"},
+      "truth": {"position": "综合业务主管", "organization": "中国科学院物理研究所", "discipline": "物理学等", "compensation": "面议", "deadline": null}
+    },
+    {
+      "url": "https://hr.pku.edu.cn/rczp/jxky/aa0000000000000000000000000000001.htm",
+      "source": "pku",
+      "title": "2026年北京大学教学科研岗位招聘启事",
+      "published_on": "2026-02-14",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式『<学校>教学科研岗位招聘启事』；position『教学科研岗位』为类别词不标注（见 _meta.category_note）"},
+      "truth": {"position": null, "organization": "北京大学", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.pku.edu.cn/rczp/jxky/aa0000000000000000000000000000002.htm",
+      "source": "pku",
+      "title": "2026年北京大学生命科学学院教学科研岗位招聘启事（更新）",
+      "published_on": "2026-10-13",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式『<学校><院系>教学科研岗位招聘启事』（含『（更新）』后缀边界：须剥离后判定）"},
+      "truth": {"position": null, "organization": "北京大学生命科学学院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.pku.edu.cn/rczp/xzjf/ldhtzp/aa0000000000000000000000000000003.htm",
+      "source": "pku",
+      "title": "国家发展研究院招聘1名劳动合同制工作人员",
+      "published_on": "2026-10-13",
+      "annotated_at": "2026-10-14",
+      "evidence": {"position": "标题句式『招聘1名劳动合同制工作人员』（『1名』为招聘人数前缀，非岗位名组成部分）", "organization": "标题句式『<院系>招聘…』"},
+      "truth": {"position": "劳动合同制工作人员", "organization": "国家发展研究院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.pku.edu.cn/rczp/jxky/aa0000000000000000000000000000004.htm",
+      "source": "pku",
+      "title": "新闻出版智能媒体技术重点实验室主任招聘公告",
+      "published_on": "2026-08-28",
+      "annotated_at": "2026-10-14",
+      "evidence": {"position": "标题句式『<实验室>主任招聘公告』", "organization": "标题句式『<实验室>主任…』；诚实口径：此句式当前规则族可能未覆盖，未覆盖即为基准扣分项"},
+      "truth": {"position": "主任", "organization": "新闻出版智能媒体技术重点实验室", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.pku.edu.cn/rczp/xzjf/sybzzp/aa0000000000000000000000000000005.htm",
+      "source": "pku",
+      "title": "生命科学学院招聘2名劳动合同制工作人员",
+      "published_on": "2026-10-13",
+      "annotated_at": "2026-10-14",
+      "evidence": {"position": "标题句式『招聘2名…』（人数前缀剥离）", "organization": "标题句式『<学院>招聘…』"},
+      "truth": {"position": "劳动合同制工作人员", "organization": "生命科学学院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.fudan.edu.cn/1d/93/c15364a794003/page.htm",
+      "source": "fudan",
+      "title": "复旦大学全球史研究院招聘启事",
+      "published_on": "2026-10-12",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式『<学校><研究院>招聘启事』"},
+      "truth": {"position": null, "organization": "复旦大学全球史研究院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.fudan.edu.cn/f3/d0/c15364a783312/page.htm",
+      "source": "fudan",
+      "title": "复旦大学马克思主义研究院人才招聘启事",
+      "published_on": "2026-06-16",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式"},
+      "truth": {"position": null, "organization": "复旦大学马克思主义研究院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.fudan.edu.cn/94/d1/c15364a758993/page.htm",
+      "source": "fudan",
+      "title": "复旦大学计算力学与人工智能交叉研究院招聘长聘副教授",
+      "published_on": "2025-12-03",
+      "annotated_at": "2026-10-14",
+      "evidence": {"position": "标题句式『招聘长聘副教授』", "organization": "标题句式"},
+      "truth": {"position": "长聘副教授", "organization": "复旦大学计算力学与人工智能交叉研究院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.fudan.edu.cn/e0/30/c15364a778288/page.htm",
+      "source": "fudan",
+      "title": "复旦大学护理学院招聘启事",
+      "published_on": "2026-04-30",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式"},
+      "truth": {"position": null, "organization": "复旦大学护理学院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.fudan.edu.cn/b3/0f/c15364a766735/page.htm",
+      "source": "fudan",
+      "title": "复旦大学马克思主义学院招聘启事",
+      "published_on": "2026-01-09",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式"},
+      "truth": {"position": null, "organization": "复旦大学马克思主义学院", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.nju.edu.cn/ac/bb/c5977a844004/page.htm",
+      "source": "nju",
+      "title": "南京大学2026年教学科研岗位公开招聘公告",
+      "published_on": "2026-10-14",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式『<学校>2026年…公开招聘公告』"},
+      "truth": {"position": null, "organization": "南京大学", "discipline": null, "compensation": null, "deadline": null}
+    },
+    {
+      "url": "https://hr.nju.edu.cn/e1/a1/c5977a844001/page.htm",
+      "source": "nju",
+      "title": "关于做好2026年下半年高校教师资格认定工作的通知",
+      "published_on": "2026-09-18",
+      "annotated_at": "2026-10-14",
+      "evidence": {"classification": "标题含『通知』→ 非招聘（分类基准样例）"},
+      "truth": {"position": null, "organization": null, "discipline": null, "compensation": null, "deadline": null},
+      "is_recruitment": false
+    },
+    {
+      "url": "https://hr.nju.edu.cn/de/ae/c5977a844002/page.htm",
+      "source": "nju",
+      "title": "关于做好2026年下半年高校教师岗前培训报名工作的通知",
+      "published_on": "2026-09-10",
+      "annotated_at": "2026-10-14",
+      "evidence": {"classification": "标题含『通知』→ 非招聘"},
+      "truth": {"position": null, "organization": null, "discipline": null, "compensation": null, "deadline": null},
+      "is_recruitment": false
+    },
+    {
+      "url": "https://hr.nju.edu.cn/db/da/c5977a844003/page.htm",
+      "source": "nju",
+      "title": "2026年度南京大学管理岗位人员初级、中级职员评定申报工作的通知",
+      "published_on": "2026-09-01",
+      "annotated_at": "2026-10-14",
+      "evidence": {"classification": "标题含『通知』+『评定』→ 非招聘"},
+      "truth": {"position": null, "organization": null, "discipline": null, "compensation": null, "deadline": null},
+      "is_recruitment": false
+    },
+    {
+      "url": "https://hr.pku.edu.cn/rczp/xzjf/sybzzp/aa0000000000000000000000000000006.htm",
+      "source": "pku",
+      "title": "2026年度北京大学招聘公告（五）学校统一面试名单",
+      "published_on": "2026-10-14",
+      "annotated_at": "2026-10-14",
+      "evidence": {"classification": "标题含『名单』→ 非招聘（排除词优先）"},
+      "truth": {"position": null, "organization": null, "discipline": null, "compensation": null, "deadline": null},
+      "is_recruitment": false
+    },
+    {
+      "url": "https://example.acabridge.invalid/job/000001",
+      "source": "acabridge",
+      "title": "（WAF 阻断源占位样例：ISO 截止句式）",
+      "published_on": "2026-10-01",
+      "annotated_at": "2026-10-14",
+      "evidence": {"deadline": "acabridge 真实页受 WAF 阻断（合规不绕过），deadline 规则族用真实句式构造样例标注；输入文本见 body_text"},
+      "body_text": "应聘材料接收截止时间：2026-11-30。逾期不再受理。",
+      "truth": {"position": null, "organization": null, "discipline": null, "compensation": null, "deadline": "2026-11-30"}
+    },
+    {
+      "url": "https://example.fudan-detail.invalid/page/000002",
+      "source": "fudan",
+      "title": "复旦大学先进材料实验室招聘公告",
+      "published_on": "2026-09-20",
+      "annotated_at": "2026-10-14",
+      "evidence": {"deadline": "中文年月日句式（deadline_cn_ymd 基准样例）", "organization": "标题句式"},
+      "body_text": "报名申请截止日期：2026年10月31日。",
+      "truth": {"position": null, "organization": "复旦大学先进材料实验室", "discipline": null, "compensation": null, "deadline": "2026-10-31"}
+    },
+    {
+      "url": "https://example.pku-detail.invalid/page/000003",
+      "source": "pku",
+      "title": "示例大学智能学院人才招聘",
+      "published_on": "2026-09-30",
+      "annotated_at": "2026-10-14",
+      "evidence": {"deadline": "相对期限句式恒 pending（K6 口径）：deadline_pending_expected = 正确行为是 pending + 证据保留，不算错、不入准确率分母"},
+      "body_text": "自发布之日起3个月内有效。",
+      "truth": {"position": null, "organization": "示例大学智能学院", "discipline": null, "compensation": null, "deadline": null},
+      "deadline_pending_expected": true
+    },
+    {
+      "url": "https://example.nju-detail.invalid/page/000004",
+      "source": "nju",
+      "title": "示例大学社会学院诚聘助理教授",
+      "published_on": "2026-10-05",
+      "annotated_at": "2026-10-14",
+      "evidence": {"deadline": "ISO 截止句式（deadline_iso 基准样例）", "position": "标题句式『诚聘助理教授』", "organization": "标题句式"},
+      "body_text": "简历投递截止：2026-11-15。",
+      "truth": {"position": "助理教授", "organization": "示例大学社会学院", "discipline": null, "compensation": null, "deadline": "2026-11-15"}
+    },
+    {
+      "url": "https://example.pku-detail.invalid/page/000005",
+      "source": "pku",
+      "title": "示例大学海洋研究院招聘研究人员",
+      "published_on": "2026-10-08",
+      "annotated_at": "2026-10-14",
+      "evidence": {"organization": "标题句式『<学校><研究院>招聘<岗位>』", "position": "『研究人员』为标题招聘动词宾语，人工口径算岗位名"},
+      "body_text": "第一轮报名截止：2026-12-01；第二轮报名截止：2026-12-20。",
+      "truth": {"position": "研究人员", "organization": "示例大学海洋研究院", "discipline": null, "compensation": null, "deadline": "2026-12-01"}
+    },
+    {
+      "url": "https://example.gaoxiaojob-detail.invalid/job/000006",
+      "source": "gaoxiaojob",
+      "title": "教师岗（教研系列）",
+      "published_on": null,
+      "annotated_at": "2026-10-14",
+      "evidence": {"classification": "标题无招聘/非招聘关键词 → 不可判定（None 照常入库）；expect_all_pending = 全字段 pending 才正确"},
+      "truth": {"position": null, "organization": null, "discipline": null, "compensation": null, "deadline": null},
+      "is_recruitment": null,
+      "expect_all_pending": true
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+# 订阅规则示例（复制为 subscribe.yaml 后生效；subscribe.yaml 已 git-ignored，
+# 真实订阅不入库）。字段说明：
+#   name      规则名（输出分组标题）
+#   keywords  关键词列表，全部命中（AND，大小写不敏感）；匹配域 = 标题 + URL + 事件 detail
+#   sources   可选；限定的源 id 列表（gaoxiaojob/acabridge/pku/fudan/nju），缺省 = 全部源
+#   kinds     可选；限定的事件类型（new_posting/deadline_changed/content_changed/
+#             announcement_removed），缺省 = 全部事件类型
+#
+# 纪律：仅 verified 字段进入推送 detail（K6）；同事件同规则重复运行命中恒定。
+subscriptions:
+  - name: 北京博士后
+    keywords: ["博士后", "北京"]
+    kinds: [new_posting]
+  - name: 截止日变更（全部源）
+    keywords: ["截止"]
+    kinds: [deadline_changed]
+  - name: 复旦化学类岗位
+    keywords: ["化学"]
+    sources: [fudan]
+    kinds: [new_posting, content_changed]

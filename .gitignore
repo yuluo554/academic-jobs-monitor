@@ -57,3 +57,7 @@ Thumbs.db
 
 # Node (web panel assets build)
 node_modules/
+
+# subscription (private)
+subscribe.yaml
+
