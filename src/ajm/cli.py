@@ -15,6 +15,21 @@ from .fetch import Fetcher
 from .sources import registry
 
 
+def _ensure_utf8_stdio() -> None:
+    """非 UTF-8 管道（CI cp1252 等）下 print 中文会 UnicodeEncodeError。
+
+    按编码探针 reconfigure；UTF-8 / 中文控制台 cp936 保持不动（本机习惯 -X utf8
+    只救"我们敲的命令"，救不了 CI 与用户机器，入口守卫才救真实通路）。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        enc = getattr(stream, "encoding", "") or ""
+        if enc.lower().replace("-", "") not in ("utf8", "cp936", "gbk", "gb2312"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="strict")
+            except (AttributeError, OSError):  # pragma: no cover
+                pass
+
+
 def _cmd_crawl(args: argparse.Namespace) -> int:
     """抓取一轮：M2 实现 5 源适配器后此命令即全链路第一步。"""
     cfg: AppConfig = default_config()
@@ -104,6 +119,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _ensure_utf8_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)

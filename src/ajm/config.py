@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 
 APP_NAME = "academic-jobs-monitor"
@@ -30,7 +30,14 @@ DEFAULT_REQUEST_TIMEOUT_SECONDS = 20.0
 REMOVAL_DEBOUNCE_ROUNDS = 3
 
 
-class SourceId(StrEnum):
+class _StrEnum(str, Enum):
+    """str 混入枚举（3.10 兼容；enum.StrEnum 是 3.11+，CI 3.10 矩阵会挂）。"""
+
+    def __str__(self) -> str:
+        return self.value
+
+
+class SourceId(_StrEnum):
     """首期 5 源（设计决策，见 plan/00 决策记录；清华/浙大等不纳入）。"""
 
     GAOXIAOJOB = "gaoxiaojob"
@@ -40,14 +47,14 @@ class SourceId(StrEnum):
     NJU = "nju"
 
 
-class FieldStatus(StrEnum):
+class FieldStatus(_StrEnum):
     """字段状态门控：只有 verified 字段可进入推送路径。"""
 
     VERIFIED = "verified"
     PENDING = "pending"
 
 
-class EventKind(StrEnum):
+class EventKind(_StrEnum):
     """快照 diff 四类事件（题面任务 3）。"""
 
     NEW_POSTING = "new_posting"
@@ -56,7 +63,7 @@ class EventKind(StrEnum):
     ANNOUNCEMENT_REMOVED = "announcement_removed"
 
 
-class FailureCode(StrEnum):
+class FailureCode(_StrEnum):
     """适配器失败原因码：单列登记，失败隔离不中断。"""
 
     TIMEOUT = "timeout"

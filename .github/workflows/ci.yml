@@ -5,11 +5,19 @@ on:
     branches: [main]
   pull_request:
 
+# 中文 print 在 cp1252 管道下会 UnicodeEncodeError（windows 全挂 + ubuntu 全过的
+# "dev 绿 CI 红"第一形态）；全局 env 覆盖所有 job 步骤。
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 历史扫描类守门测试依赖全量历史，浅克隆会静默空验
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -23,6 +31,8 @@ jobs:
         python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
