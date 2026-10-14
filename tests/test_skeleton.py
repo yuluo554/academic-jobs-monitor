@@ -128,8 +128,14 @@ def test_storage_round_and_event_timeline(tmp_path) -> None:
 # -- cli ----------------------------------------------------------------------
 
 
-def test_cli_sources_and_unimplemented(capsys) -> None:
+def test_cli_sources_and_milestone_gates(capsys) -> None:
     assert main(["sources"]) == 0
-    assert main(["extract"]) == 2  # 未实现里程碑返回 2
+    # extract 已在 M3 实现（fixture 回放演示）；feed/bench/web 仍按里程碑返回 2
+    assert main(["extract", "--fixture", "gaoxiaojob"]) == 0
     out = capsys.readouterr().out
-    assert "not implemented" in out or out == ""
+    assert "registered deadline rules" in out
+    assert main(["feed"]) == 2
+    assert main(["bench"]) == 2
+    assert main(["web"]) == 2
+    out = capsys.readouterr().out
+    assert "not implemented" in out

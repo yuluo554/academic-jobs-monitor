@@ -25,18 +25,50 @@ _BASE_URL = "https://www.gaoxiaojob.com/"
 
 
 def _parse_entry(anchor: Node) -> RawItem | None:
-    """单条目解析：任何必需字段缺失返回 None（整条跳过，不兜底）。"""
+    """单条目解析：任何必需字段缺失返回 None（整条跳过，不兜底）。
+
+    页面结构中"原样存在"的值（requirement/region span）进 RawItem.extra，
+    供抽取层映射为 verified 证据（K5：适配器不推断，只搬运页面原值）。
+    """
     href = anchor.attrs.get("href", "")
     if not href.startswith("/job/detail/"):
         return None
     title = anchor.attrs.get("title", "").strip()
     if not title:
         return None
+    extra: dict[str, str] = {}
+    position_div = anchor.find("div", class_contains="position")
+    if position_div is not None:
+        h6 = position_div.find("h6")
+        if h6 is not None and h6.text().strip():
+            extra["position"] = h6.text().strip()
+        money = position_div.find("span", class_contains="money")
+        if money is not None and money.text().strip():
+            extra["compensation"] = money.text().strip()
+    requirement = anchor.find("div", class_contains="requirement")
+    if requirement is not None:
+        spans = [s.text().strip() for s in requirement.find_all("span")]
+        # notes.md 口径：顺序固定 = [学历, 学科, 人数]
+        if len(spans) >= 2 and spans[1]:
+            extra["discipline"] = spans[1]
+        if len(spans) >= 1 and spans[0]:
+            extra["degree"] = spans[0]
+        if len(spans) >= 3 and spans[2]:
+            extra["headcount"] = spans[2]
+    region = anchor.find("div", class_contains="region")
+    if region is not None:
+        school = region.find("span", class_contains="school")
+        if school is not None and school.text().strip():
+            extra["org"] = school.text().strip()
+        city = region.find("span", class_contains="city")
+        if city is not None and city.text().strip():
+            extra["city"] = city.text().strip()
     return RawItem(
         source=SOURCE_ID,
         url=urljoin(_BASE_URL, href),
         title=title,
         published_on=None,  # 列表页无日期字段（M1 复核确认）
+        extra=extra,
     )
 
 

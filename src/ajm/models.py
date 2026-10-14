@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
@@ -43,7 +44,21 @@ class RawItem:
     published_on: date | None
     # raw HTML 落盘留证路径（相对项目根；cache/ 已 git-ignore，不外发）。
     raw_html_path: str | None = None
+    # 适配器在页面上直接看到的结构化字段（键名 → 原文值）。
+    # 仅允许"页面结构里原样存在"的值（如 gaoxiaojob requirement/region span），
+    # 供抽取层映射为 verified 证据；适配器不得在此填推断值（K5）。
+    extra: dict[str, str] = field(default_factory=dict)
     fetched_at: datetime = field(default_factory=_utcnow)
+
+
+# pku 边界（M1 预警）：title 带"（更新）"后缀的内容更新型条目，
+# 后缀本身不是正文变更，哈希前剥离（strip_update_suffix 实现在 extract 引擎，
+# 快照层的 content_hash 统一经 JobPosting.content_hash 产生，已剥离）。
+_UPDATE_SUFFIX_RE = re.compile(r"[（(]\s*更新\s*[)）]\s*$")
+
+
+def strip_update_suffix(title: str) -> str:
+    return _UPDATE_SUFFIX_RE.sub("", title).strip()
 
 
 @dataclass(slots=True)
@@ -92,6 +107,66 @@ class JobPosting:
     body_text: str = ""
     content_hash: str = ""
     extracted_at: datetime = field(default_factory=_utcnow)
+
+    # -- 序列化 ---------------------------------------------------------------
+
+    def to_json(self) -> str:
+        """入库 JSON（snapshots.extracted_json）：仅元数据与字段证据，不存正文镜像（合规）。"""
+        return json.dumps(self._to_dict(), ensure_ascii=False)
+
+    def _to_dict(self) -> dict[str, object]:
+        fields: dict[str, object] = {}
+        for name, f in self.fields().items():
+            fields[name] = {
+                "status": str(f.status),
+                "value": f.value,
+                "candidates": f.candidates,
+                "ambiguous": f.ambiguous,
+                "evidence": (
+                    {"rule_name": f.evidence.rule_name, "snippet": f.evidence.snippet}
+                    if f.evidence is not None
+                    else None
+                ),
+            }
+        return {
+            "url": self.url,
+            "source": str(self.source),
+            "title": self.title,
+            "published_on": self.published_on.isoformat() if self.published_on else None,
+            "content_hash": self.content_hash,
+            "fields": fields,
+        }
+
+    @classmethod
+    def from_json(cls, raw: str) -> JobPosting:
+        data = json.loads(raw)
+        fields_data = data["fields"]
+
+        def _field(name: str) -> ExtractedField:
+            fd = fields_data[name]
+            ev = fd.get("evidence")
+            return ExtractedField(
+                name=name,
+                status=FieldStatus(fd["status"]),
+                value=fd.get("value"),
+                candidates=list(fd.get("candidates") or []),
+                ambiguous=bool(fd.get("ambiguous", False)),
+                evidence=Evidence(rule_name=ev["rule_name"], snippet=ev["snippet"]) if ev else None,
+            )
+
+        published = data.get("published_on")
+        return cls(
+            url=data["url"],
+            source=SourceId(data["source"]),
+            title=data["title"],
+            published_on=date.fromisoformat(published) if published else None,
+            position=_field("position"),
+            organization=_field("organization"),
+            discipline=_field("discipline"),
+            compensation=_field("compensation"),
+            deadline=_field("deadline"),
+            content_hash=data.get("content_hash", ""),
+        )
 
     def fields(self) -> dict[str, ExtractedField]:
         return {
