@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import json
 import xml.etree.ElementTree as ET
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
+from ajm.bench.truth import BENCH_DIR  # 真值/变更 fixture 随包分发（单一来源，勿另拷路径）
 from ajm.cli import main
 from ajm.config import AppConfig, EventKind, SourceId
 from ajm.models import ChangeEvent
-from subscribe import (
+from ajm.subscribe import (
     FeedEntry,
     SubscriptionConfig,
     match_events,
@@ -26,13 +27,13 @@ from subscribe import (
     render_rss,
 )
 
-BENCH_DIR = Path(__file__).resolve().parents[1] / "bench" / "fixtures"
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # -- 1. bench 真值基准 ---------------------------------------------------------
 
 
 def test_truth_bench_runs_and_scores_consistent() -> None:
-    from bench.truth import run_truth
+    from ajm.bench.truth import run_truth
 
     report = run_truth()
     assert report.fields.keys() == {
@@ -58,8 +59,8 @@ def test_truth_bench_is_falsifiable_injected_defect_must_fail() -> None:
     这是 DoD『注入缺陷必须报未达标』的自动化：规则族被破坏而基准仍 PASS
     等价于基准失效，绝不允许。
     """
-    import extract.rules as rules_mod
-    from bench.truth import run_truth
+    import ajm.extract.rules as rules_mod
+    from ajm.bench.truth import run_truth
 
     original = rules_mod.RULES
     try:
@@ -68,7 +69,7 @@ def test_truth_bench_is_falsifiable_injected_defect_must_fail() -> None:
         assert len(crippled) == len(original) - 1
         rules_mod.RULES = crippled
         # engine 模块按 rules.RULES 动态读取（_deadline_from_text 引用 rules.RULES）
-        import extract.engine as engine_mod
+        import ajm.extract.engine as engine_mod
 
         assert engine_mod._deadline_from_text("报名截止日期：2026年10月31日。").value is None
         report = run_truth()
@@ -80,7 +81,7 @@ def test_truth_bench_is_falsifiable_injected_defect_must_fail() -> None:
 
 
 def test_change_cases_bench_all_detected_no_false_positives() -> None:
-    from bench.change_cases import run_change_cases
+    from ajm.bench.change_cases import run_change_cases
 
     results = run_change_cases()
     assert {name for name, _ in results} == {
@@ -132,14 +133,12 @@ def _event(
         source=source,
         round=round_no,
         detail=detail or {},
-        detected_at=detected_at or datetime(2026, 10, 14, 12, 0, tzinfo=timezone.utc),
+        detected_at=detected_at or datetime(2026, 10, 14, 12, 0, tzinfo=UTC),
     )
 
 
 def _sample_config() -> SubscriptionConfig:
-    return SubscriptionConfig.from_file(
-        Path(__file__).resolve().parents[1] / "subscribe.example.yaml"
-    )
+    return SubscriptionConfig.from_file(REPO_ROOT / "subscribe.example.yaml")
 
 
 def test_subscription_matching_deterministic_repeatable() -> None:
@@ -194,7 +193,7 @@ def test_rss_structure_and_deterministic_guid() -> None:
     ]
     titles = {e.url: f"公告-{e.url}" for e in events}
     entries = [FeedEntry(event=ev, title=titles[ev.url]) for ev in events]
-    now = datetime(2026, 10, 14, 8, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 14, 8, 0, tzinfo=UTC)
     rss1 = render_rss(entries, channel_title="学术招聘监控推送",
                       channel_link="https://localhost/", generated_at=now)
     rss2 = render_rss(entries, channel_title="学术招聘监控推送",
@@ -222,7 +221,7 @@ def test_html_feed_escapes_and_no_external_links() -> None:
     html = render_html(
         [FeedEntry(event=event, title="示例<script>标题")],
         channel_title="学术招聘监控推送",
-        generated_at=datetime(2026, 10, 14, tzinfo=timezone.utc),
+        generated_at=datetime(2026, 10, 14, tzinfo=UTC),
     )
     assert "<script>" not in html  # 转义后不出现可执行标签
     assert "&lt;script&gt;" in html
@@ -235,8 +234,8 @@ def test_feed_detail_only_verified_fields_k6() -> None:
     相对期限 deadline 恒 pending → detail 中不出现 deadline 键。
     """
     from ajm.models import RawItem
+    from ajm.snapshot import SnapshotPipeline
     from ajm.storage import Storage
-    from snapshot import SnapshotPipeline
 
     st = Storage(":memory:")
     try:
@@ -277,9 +276,9 @@ def test_repo_fixtures_use_fake_org_names_k8() -> None:
         "首都师范大学", "中央广播电视总台", "北京市人民政府",
     ]
     scan_roots = [
-        Path("src/ajm/sources/fixtures"),
-        Path("bench/fixtures/change_cases"),
-        Path("subscribe.example.yaml"),
+        REPO_ROOT / "src" / "ajm" / "sources" / "fixtures",
+        REPO_ROOT / "src" / "ajm" / "bench" / "fixtures" / "change_cases",
+        REPO_ROOT / "subscribe.example.yaml",
     ]
     violations: list[str] = []
     for root in scan_roots:

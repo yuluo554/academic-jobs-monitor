@@ -72,13 +72,13 @@ def _cmd_extract(args: argparse.Namespace) -> int:
     """抽取演示：对最近一轮 raw 留证或 fixture 跑规则族，打印字段与证据链。"""
     from pathlib import Path
 
-    from extract.engine import extract_posting, is_recruitment
-    from extract.rules import RULES
+    from ajm.extract.engine import extract_posting, is_recruitment
+    from ajm.extract.rules import RULES
 
     cfg: AppConfig = default_config()
     paths: list[Path] = []
     if args.fixture:
-        fx = Path(__file__).resolve().parents[1] / "ajm" / "sources" / "fixtures" / args.fixture
+        fx = Path(__file__).resolve().parent / "sources" / "fixtures" / args.fixture
         if not fx.exists():
             print(f"unknown source fixture: {args.fixture}", file=sys.stderr)
             return 2
@@ -133,7 +133,7 @@ def _cmd_extract(args: argparse.Namespace) -> int:
 
 def _cmd_snapshot(args: argparse.Namespace) -> int:
     """真实抓取一轮 → 抽取 → 快照入库 → diff 事件（四类事件时间线可查询）。"""
-    from snapshot import SnapshotPipeline
+    from ajm.snapshot import SnapshotPipeline
 
     cfg: AppConfig = default_config()
     storage = Storage(cfg.db_path)
@@ -203,7 +203,7 @@ def _cmd_feed(args: argparse.Namespace) -> int:
     标题从快照库补齐；未配置订阅文件时提示并返回 2。
     """
 
-    from subscribe import FeedEntry, SubscriptionConfig, match_events, render_html, render_rss
+    from ajm.subscribe import FeedEntry, SubscriptionConfig, match_events, render_html, render_rss
 
     cfg: AppConfig = default_config()
     sub = SubscriptionConfig.from_file(cfg.subscribe_file)
@@ -258,11 +258,11 @@ def _cmd_feed(args: argparse.Namespace) -> int:
 
 def _cmd_bench(_: argparse.Namespace) -> int:
     """内置基准：真值抽取逐字段准确率 + 受控变更样本检出（题面任务 5）。"""
-    from bench.change_cases import run_change_cases
-    from bench.truth import run_truth
+    from ajm.bench.change_cases import run_change_cases
+    from ajm.bench.truth import run_truth
 
     report = run_truth()
-    print("== 真值抽取基准（bench/fixtures/truth.json）==")
+    print("== 真值抽取基准（src/ajm/bench/fixtures/truth.json）==")
     field_scores = report.field_scores()
     for name, s in field_scores.items():
         print(
@@ -279,7 +279,7 @@ def _cmd_bench(_: argparse.Namespace) -> int:
     for failure in report.failures:
         print(f"  [MISS] {failure}")
 
-    print("\n== 变更检测基准（bench/fixtures/change_cases）==")
+    print("\n== 变更检测基准（src/ajm/bench/fixtures/change_cases）==")
     all_ok = True
     for name, change_report in run_change_cases():
         all_ok = all_ok and change_report.ok
@@ -298,7 +298,7 @@ def _cmd_bench(_: argparse.Namespace) -> int:
 
 def _cmd_web(args: argparse.Namespace) -> int:
     """启动本地 Web 面板（M5）：只读快照库视图，与 CLI 共享同一编排函数。"""
-    from webapp.app import run as run_webapp
+    from ajm.webapp.app import run as run_webapp
 
     print(f"web: http://{args.host}:{args.port}  (Ctrl+C 退出)")
     run_webapp(host=args.host, port=args.port)

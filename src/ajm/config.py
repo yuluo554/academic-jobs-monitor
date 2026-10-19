@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 APP_NAME = "academic-jobs-monitor"
@@ -30,11 +30,13 @@ DEFAULT_REQUEST_TIMEOUT_SECONDS = 20.0
 REMOVAL_DEBOUNCE_ROUNDS = 3
 
 
-class _StrEnum(str, Enum):
-    """str 混入枚举（3.10 兼容；enum.StrEnum 是 3.11+，CI 3.10 矩阵会挂）。"""
+class _StrEnum(StrEnum):
+    """统一枚举基类：成员即其字符串值（`str(x) == x.value`，禁止裸字符串漂移）。
 
-    def __str__(self) -> str:
-        return self.value
+    M0 时是 `(str, Enum)` str 混入（`enum.StrEnum` 是 3.11+，为 3.10 底线让路）；
+    M7 迭代把解释器 floor 抬到 3.12（DEC3=B）后改用 `enum.StrEnum`——对外行为不变
+    （`__str__`/`__format__` 都返回 value），保留本基类名使四处枚举仍统一走一个基类。
+    """
 
 
 class SourceId(_StrEnum):

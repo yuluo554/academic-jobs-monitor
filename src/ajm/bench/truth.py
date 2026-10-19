@@ -1,8 +1,8 @@
 """内置基准（题面任务 5）：真值抽取对账 + 受控变更样本，一条命令可重复运行。
 
 模块布局：
-- truth.json（bench/fixtures/）：真实公告 URL + 人工标注 5 字段真值；
-- change_cases/（bench/fixtures/）：同一页面多轮受控构造的变更样本；
+- truth.json（src/ajm/bench/fixtures/）：真实公告 URL + 人工标注 5 字段真值；
+- change_cases/（src/ajm/bench/fixtures/）：同一页面多轮受控构造的变更样本；
 - run_truth()：逐字段准确率（口径见 bench/README.md 与 README 指标口径节）；
 - run_change_cases()：四类事件检出率（变更检测基准）。
 
@@ -23,10 +23,12 @@ from datetime import date
 from pathlib import Path
 
 from ajm.config import FieldStatus, SourceId
+from ajm.extract.engine import extract_posting, is_recruitment
 from ajm.models import RawItem
-from extract.engine import extract_posting, is_recruitment
 
-BENCH_DIR = Path(__file__).resolve().parents[2] / "bench" / "fixtures"
+# 真值数据随包分发（在包内，不在安装树之外）：路径相对本模块解析——
+# 非 editable 安装（site-packages）下同样成立（M7 迭代修复 D1）。
+BENCH_DIR = Path(__file__).resolve().parent / "fixtures"
 TRUTH_PATH = BENCH_DIR / "truth.json"
 CHANGE_CASES_DIR = BENCH_DIR / "change_cases"
 
