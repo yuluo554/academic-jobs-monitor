@@ -20,10 +20,10 @@
 1. **题面交付对标逐行核对**（plan/01 §三 ↔ plan/06 §一）：
    | 题面提交材料 | 交付物 | 状态 |
    |---|---|---|
-   | 1. Web 面板 + CLI 双入口 | `src/webapp/` + `src/ajm/cli.py`（三方对账测试） | ✅ |
-   | 2. 核心代码框架（5 子系统） | sources/extract/snapshot/subscribe(feeds)/bench | ✅ |
+   | 1. Web 面板 + CLI 双入口 | `src/ajm/webapp/` + `src/ajm/cli.py`（三方对账测试） | ✅ |
+   | 2. 核心代码框架（5 子系统） | `src/ajm/{sources,extract,snapshot,subscribe,bench}` | ✅ |
    | 3. 技术报告 | `docs/技术报告.md` | ✅ |
-   | 4. 真值库与基准报告 | `bench/fixtures/truth.json` + `jobsctl bench` + bench/README | ✅ |
+   | 4. 真值库与基准报告 | `src/ajm/bench/fixtures/truth.json` + `jobsctl bench` + bench/README | ✅ |
    | 5. Release 附截图/样例 RSS | v0.1.0-m6 附件 6 个 | ✅ |
    核对时逐行打开实物验证（勿只信本表），结论回填 plan/06 §一最后一列。
 2. **演示脚本**（`docs/演示脚本.md`）：面向评分视角的 10 分钟走查——`jobsctl sources` → `snapshot`（真实一轮）→ `timeline` → `feed` → `bench`（99.1% + 诚实扣分）→ `web` 四页；每步给预期输出样例（可从本文件 §四与 RELEASE-M6 抄）。
@@ -41,7 +41,9 @@
 
 ```bash
 cd <项目根>
-.venv/Scripts/python.exe -m pytest          # 67 项，全离线
+.venv/Scripts/python.exe -m pytest          # 77 项（67 + 10 打包守门），全离线
+.venv/Scripts/python.exe -m pytest -m "not slow"   # 67 项，快反馈（CI test job 口径）
+.venv/Scripts/python.exe -m pytest -m slow         # 10 项打包守门（CI packaging job 口径）
 .venv/Scripts/python.exe -m ruff check src tests
 .venv/Scripts/jobsctl.exe bench             # 99.1% + 变更全检出（exit 1=扣分项在）
 .venv/Scripts/jobsctl.exe web               # http://127.0.0.1:8000
@@ -54,6 +56,25 @@ gh run list --repo yuluo554/academic-jobs-monitor   # CI 对账
 - bench 唯一扣分项仍在（position 95.5%，overall 99.1%，exit 1）——M7 可选项 3 可修；
 - 截止日期均为列表页/结构化字段所得，详情页二级抓取（gaoxiaojob 截止日期埋正文）未做——题面扩展项，非必交；
 - 清华/浙大/博士招生网不可获取，首期不纳入（如实登记于 data/README.md 与 plan/01 §五）。
+
+**【2026-10-19 已闭环】D1 非 editable 安装缺陷（原诊断 P1）**
+原状态：`pyproject.toml` 只打包 `src/ajm`，而 `cli.py` 在 5 个子命令内部惰性 import
+`extract`/`snapshot`/`subscribe`/`bench`/`webapp` 五个**顶层同级包**。`pip wheel .` 出来的
+wheel 只含 `ajm/` + dist-info；装进全新 venv 后 8 个子命令里 5 个 `ModuleNotFoundError`。
+本地与 CI 长期全绿是因为 hatchling 的 editable 安装把仓库 `src` 的绝对路径写进
+`_editable_impl_ajm.pth`，`import extract` 因此成立——**"干净环境验证"实际全是 `-e`**。
+
+修复（M7 迭代，见 plan/06 2026-10-19 行）：
+- 五包 `git mv` 进 `src/ajm/`，import 全改 `ajm.` 前缀；真值库/变更样本迁到
+  `src/ajm/bench/fixtures/` 并改相对本模块解析（原 `parents[2]` 在 site-packages 下越界）；
+- 门禁：`tests/test_packaging.py`（9 项）+ CI `packaging` job，覆盖 wheel 内容、
+  dist-info 元数据、venv 非 editable 自证、5 条子命令；CI `test` job 跑 `-m "not slow"`；
+- 解释器 floor 抬到 3.12（DEC3=B），`_StrEnum` 改用 `enum.StrEnum`。
+
+复验口径（已实测）：全新 venv 装 wheel + **中立目录**下跑
+`sources` / `timeline` / `extract --fixture pku` / `bench` / `feed` / `web` 六条全通；
+`bench` 仍是 108/109 = 99.1%、**exit 1**（诚实扣分项未动）。
+仍待复验的是**新 CI 三 job 的实际结论**——需推送后才可见（本轮不推送）。
 
 ## 六、启动提示词（下一对话）
 

@@ -5,15 +5,22 @@
 ## 目录
 
 ```
-bench/
-├── README.md                  ← 本文件（指标口径权威定义）
-└── fixtures/
+src/ajm/bench/
+├── truth.py                   ← 真值抽取基准 runner
+├── change_cases.py            ← 变更检测基准 runner
+└── fixtures/                  ← 随 wheel 分发（非 editable 安装同样可用）
     ├── truth.json             ← 抽取真值库（真实公告 URL + 人工标注 5 字段真值）
     └── change_cases/
         └── cases.json         ← 变更检测基准（多轮受控构造，走 SnapshotPipeline 生产路径）
+bench/
+└── README.md                  ← 本文件（指标口径权威定义）
 ```
 
-## 一、真值抽取基准（`src/bench/truth.py`）
+> 数据在包内（`src/ajm/bench/fixtures/`），runner 用 `Path(__file__).resolve().parent /
+> "fixtures"` 解析——所以装成 wheel 后 `jobsctl bench` 读的是 site-packages 里的同一份
+> 真值库，不会越界到安装树之外。
+
+## 一、真值抽取基准（`src/ajm/bench/truth.py`）
 
 ### 样例构成
 
@@ -58,7 +65,7 @@ bench/
 `jobsctl bench` 对唯一已知扣分项返回退出码 1（NOT PASSED）——**扣分项不隐藏**，
 修复句式覆盖后基准自然转绿。
 
-## 二、变更检测基准（`src/bench/change_cases.py`）
+## 二、变更检测基准（`src/ajm/bench/change_cases.py`）
 
 用例 = 多轮受控构造（`example.invalid` 合成域名 + 假名白名单，K8），逐轮
 `begin_round → ingest → close_round(seen_urls)` 与生产编排同口径：

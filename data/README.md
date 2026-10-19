@@ -48,7 +48,7 @@
 ## 六、字段抽取口径（M3 补记，2026-10-14）
 
 - **抽取输入**：`RawItem`（列表页字段 + 标题）为主；详情页正文为扩展输入（`bodies` 参数，gaoxiaojob 截止日期在详情页，首期未做二级抓取 → 其 deadline 恒 pending，合规口径）。
-- **截止日期规则族**（`src/extract/rules.py`，命名规范 `deadline_<格式语义>`）：`deadline_iso`（YYYY-MM-DD）→ `deadline_cn_ymd`（YYYY年M月D日）→ `deadline_chinese_until`（即日起至…）→ `deadline_relative_from_now`（相对期限，恒 pending 只留证据）。试跑顺序即登记顺序，命中即取；多候选全保留标 ambiguous。
+- **截止日期规则族**（`src/ajm/extract/rules.py`，命名规范 `deadline_<格式语义>`）：`deadline_iso`（YYYY-MM-DD）→ `deadline_cn_ymd`（YYYY年M月D日）→ `deadline_chinese_until`（即日起至…）→ `deadline_relative_from_now`（相对期限，恒 pending 只留证据）。试跑顺序即登记顺序，命中即取；多候选全保留标 ambiguous。
 - **分类口径**：标题显式排除词（通知/培训/评定/名单…）优先于包含词（招聘/诚聘/启事/博士后…）；不可判定（None）照常入库不丢数据。实测：nju 首页 4 条通知 3 条被正确排除；pku"拟聘用人员公示"类条目按排除词口径处理。
 - **证据链**：每个 verified 字段必带 `Evidence(rule_name, snippet)`；结构化直映射（gaoxiaojob）证据 = 页面原值（rule_name=`structured_*`）。
 - **缓存边界不变**：快照库仅存标题/URL/日期/字段与证据片段，不存正文镜像（`content_hash` 为 SHA-256，不可逆）。
