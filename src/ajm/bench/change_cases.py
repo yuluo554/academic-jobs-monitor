@@ -1,6 +1,6 @@
 """变更检测基准（题面任务 3 对账）：受控多轮样本走 SnapshotPipeline 生产路径。
 
-用例文件 bench/fixtures/change_cases/cases.json：
+用例文件 src/ajm/bench/fixtures/change_cases/cases.json（随包分发）：
 - rounds：逐轮条目（离线构造，example.invalid 域名 + 假名白名单，K8）；
 - expect：该轮期望事件（kind + url 必填，detail_contains 可选）；
 - 期望之外的事件即误报（no_false_positive_rule）。
@@ -17,12 +17,10 @@ from pathlib import Path
 
 from ajm.config import AppConfig, EventKind, SourceId
 from ajm.models import RawItem
+from ajm.snapshot import SnapshotPipeline
 from ajm.storage import Storage
-from snapshot import SnapshotPipeline
 
-CASES_PATH = (
-    Path(__file__).resolve().parents[2] / "bench" / "fixtures" / "change_cases" / "cases.json"
-)
+CASES_PATH = Path(__file__).resolve().parent / "fixtures" / "change_cases" / "cases.json"
 
 
 @dataclass(slots=True)

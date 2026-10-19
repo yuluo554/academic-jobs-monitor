@@ -13,11 +13,11 @@ from __future__ import annotations
 from datetime import date
 
 from ajm.config import AppConfig, EventKind, FieldStatus, SourceId
+from ajm.extract import RULES, extract_posting, is_recruitment
+from ajm.extract.engine import _deadline_from_text  # noqa: PLC2701  直接测规则族
 from ajm.models import Evidence, RawItem
+from ajm.snapshot import SnapshotPipeline
 from ajm.storage import Storage
-from extract import RULES, extract_posting, is_recruitment
-from extract.engine import _deadline_from_text  # noqa: PLC2701  直接测规则族
-from snapshot import SnapshotPipeline
 
 
 def _item(

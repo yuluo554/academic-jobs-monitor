@@ -13,7 +13,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from .config import EventKind, FieldStatus, SourceId
 
@@ -21,7 +21,7 @@ _TEXT_COLLAPSE = re.compile(r"\s+")
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def normalize_text(text: str) -> str:

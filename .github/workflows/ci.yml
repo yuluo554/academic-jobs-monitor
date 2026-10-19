@@ -5,6 +5,14 @@ on:
     branches: [main]
   pull_request:
 
+# 只读 token（本仓 CI 无需写权限）；同 ref 新跑取消旧跑，省配额也避免"旧跑结论"误读。
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # 中文 print 在 cp1252 管道下会 UnicodeEncodeError（windows 全挂 + ubuntu 全过的
 # "dev 绿 CI 红"第一形态）；全局 env 覆盖所有 job 步骤。
 env:
@@ -15,10 +23,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # 历史扫描类守门测试依赖全量历史，浅克隆会静默空验
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install ruff
@@ -28,13 +36,34 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.12"]
+        # M7 迭代（DEC3=B）：floor 抬到 3.12（3.10 安全支持 2026-10 到期），矩阵随之收缩。
+        python-version: ["3.12"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .[dev]
-      - run: pytest
+      # slow = tests/test_packaging.py（自建 wheel + 全新 venv，约 1 分钟）；
+      # 它由下面的 packaging job 单独跑，本 job 保持快反馈。
+      - run: pytest -m "not slow"
+
+  packaging:
+    # 非 editable 安装门禁（M7 迭代新增，回归 D1：wheel 曾只含 ajm/ 而 CLI 惰性 import
+    # 5 个顶层同级包 → 装完 8 个子命令里 5 个 ModuleNotFoundError，而本地/CI 全绿是因为
+    # editable 的 .pth 把仓库 src 塞进了 sys.path）。
+    # 本 job 刻意**不**做 `pip install -e .`：让守门测试自己建 wheel + 全新 venv 安装。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      # 只收集本文件：该 job 不装项目运行时依赖，其他测试模块在 collection 阶段就会要 httpx 等；
+      # 本文件只用标准库 + 自建 venv（wheel 的依赖由 pip 在 venv 内自动装）。
+      - run: pytest tests/test_packaging.py -m slow -v

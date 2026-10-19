@@ -19,10 +19,10 @@ from fastapi.testclient import TestClient
 from ajm.cli import main
 from ajm.config import AppConfig, SourceId
 from ajm.models import RawItem
+from ajm.snapshot import SnapshotPipeline
 from ajm.storage import Storage
-from snapshot import SnapshotPipeline
-from webapp import views
-from webapp.app import create_app
+from ajm.webapp import views
+from ajm.webapp.app import create_app
 
 
 def _seed_config(tmp_path: Path) -> AppConfig:

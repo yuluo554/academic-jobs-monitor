@@ -5,7 +5,7 @@ description = "高校学术招聘聚合监控器：多源抓取 · 结构化字�
 authors = [{ name = "yuluo554" }]
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.27",
     "beautifulsoup4>=4.12",
@@ -29,6 +29,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
+# M7 迭代（DEC1=B）：extract/bench/snapshot/subscribe/webapp 已收进 ajm 命名空间
+# （src/ajm/*），因此这一个 packages 声明即覆盖全部子系统与随包真值/fixture 数据；
+# 顶层只有 ajm + dist-info（不再向 site-packages 顶层投 bench/extract 等通用名）。
+# 守门见 tests/test_packaging.py（非 editable 装完能跑）。
 packages = ["src/ajm"]
 
 [tool.ruff]
@@ -41,3 +45,9 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# 不依赖 editable 安装（`_editable_impl_ajm.pth` 把仓库 src 塞进 sys.path）——
+# 新增仓库/CI 无需先 `pip install -e .` 也能收集与运行测试。
+pythonpath = ["src"]
+markers = [
+    "slow: 慢测：建 wheel + 全新 venv 安装后跑子命令（tests/test_packaging.py）",
+]

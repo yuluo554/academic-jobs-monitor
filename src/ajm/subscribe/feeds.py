@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from xml.sax.saxutils import escape
 
 from ajm.config import EventKind
@@ -60,7 +60,7 @@ def render_rss(
     generated_at: datetime | None = None,
 ) -> str:
     """RSS 2.0 文档（标准库手写 XML，条目按输入序）。"""
-    now = generated_at or datetime.now(timezone.utc)
+    now = generated_at or datetime.now(UTC)
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<rss version="2.0">',
@@ -107,7 +107,7 @@ def render_html(
     generated_at: datetime | None = None,
 ) -> str:
     """HTML 摘要页（内联样式，0 外链，断网可看）。"""
-    now = generated_at or datetime.now(timezone.utc)
+    now = generated_at or datetime.now(UTC)
     items = []
     for entry in entries:
         label = _KIND_LABELS.get(entry.event.kind, str(entry.event.kind))

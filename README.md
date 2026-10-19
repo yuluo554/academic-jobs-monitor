@@ -17,8 +17,24 @@
 
 ## 快速开始
 
+**要求**：Python **3.12+**（3.10 已过安全支持窗口，M7 迭代起不再支持）。
+
+发行名是 `ajm`、入口命令是 `jobsctl`——**两者不同名**。当前**未发布到 PyPI**（`ajm`
+在 PyPI 上不存在），所以只有下面两条源码安装路径，没有 `pip install ajm`。
+
 ```bash
-pip install -e .[dev]
+git clone https://github.com/yuluo554/academic-jobs-monitor.git
+cd academic-jobs-monitor
+
+# 路径一（开发用，推荐）：editable 安装，改代码即时生效
+pip install -e ".[dev]"
+
+# 路径二（当产品用）：构建 wheel 后装进任意环境，不依赖源码目录
+python -m pip wheel . -w dist/ --no-deps
+pip install dist/ajm-0.1.0-py3-none-any.whl
+```
+
+```bash
 jobsctl --help
 jobsctl sources        # 查看已注册适配器
 jobsctl crawl          # 抓取一轮（限频 3s/源，UA 自标识）
@@ -29,9 +45,15 @@ jobsctl feed           # 订阅匹配 → RSS/HTML 摘要（先复制 subscribe.
 jobsctl web            # 启动本地面板（M5）
 ```
 
+> **editable 与 wheel 的差别务必留意**：`pip install -e .` 会把仓库 `src/` 整个塞进
+> `sys.path`，于是"wheel 漏打包"这类缺陷在本地完全看不出来。M7 迭代修掉了这个缺陷
+> （5 个子系统已收进 `ajm` 命名空间），并新增非 editable 安装门禁
+> （`tests/test_packaging.py` + CI `packaging` job）：wheel 内容、装进全新 venv、
+> 在中立目录跑子命令三层都断言。
+
 ## 状态
 
-🚧 项目处于骨架阶段，里程碑计划见 [plan/02-开发计划与代码骨架.md](plan/02-开发计划与代码骨架.md)。
+M1–M6 全部完成，v0.1.0 已发布（Release 见下表）。M7 为收尾清点与演示。
 
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
@@ -49,7 +71,7 @@ jobsctl web                 # 默认 http://127.0.0.1:8000（--host/--port 可�
 ```
 
 - **只读面板**：条目列表（快照库）/ 变更时间线（`?url=` 出单条全历史）/ 订阅预览 / 基准报告；抓取仍走 `jobsctl snapshot`；
-- **双形态同源**：与 CLI 共享同一编排函数组（`webapp/views.py` 单一事实源），三方对账测试断言 CLI stdout = 直调视图函数 = 面板渲染一致；
+- **双形态同源**：与 CLI 共享同一编排函数组（`src/ajm/webapp/views.py` 单一事实源），三方对账测试断言 CLI stdout = 直调视图函数 = 面板渲染一致；
 - 零外链内联单页，断网可演示；`/docs` 关闭；演示截图见
   [docs/screenshots/](docs/screenshots/)（条目列表 / 时间线 / 订阅 / 基准四页），
   推送样例见 [docs/release-samples/](docs/release-samples/)（`sample-feed.html` / `sample-feed.rss`）。
@@ -60,7 +82,7 @@ jobsctl web                 # 默认 http://127.0.0.1:8000（--host/--port 可�
 
 **一条命令**：`jobsctl bench`（离线可复跑；权威定义见 [bench/README.md](bench/README.md)）。
 
-**真值抽取基准**（`bench/fixtures/truth.json`，v1 共 27 例：真实公告列表页条目 +
+**真值抽取基准**（`src/ajm/bench/fixtures/truth.json`，随包分发；v1 共 27 例：真实公告列表页条目 +
 deadline 规则族真实句式样例，人工标注、`annotated_at` 可回溯）：
 
 - 真值非空：verified 值相等记对；ambiguous 且真值 ∈ candidates 记对（单独计数）；
@@ -70,7 +92,7 @@ deadline 规则族真实句式样例，人工标注、`annotated_at` 可回溯�
 - 相对期限样例：正确行为是 pending + 证据保留，不计入分母（K6）；
 - 非招聘条目只对账分类，不进字段分母（与生产编排一致）。
 
-**变更检测基准**（`bench/fixtures/change_cases/`）：多轮受控构造走
+**变更检测基准**（`src/ajm/bench/fixtures/change_cases/`）：多轮受控构造走
 `SnapshotPipeline` 生产路径，期望事件全检出且期望之外零事件（误报）才通过；
 含"删除后复现""截止日改期""（更新）后缀非变更"边界。
 

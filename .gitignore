@@ -61,3 +61,6 @@ node_modules/
 # subscription (private)
 subscribe.yaml
 
+# 迭代交接物（诊断/路线/执行记录）：含本机绝对路径，K8 纪律下永不入库
+update/
+

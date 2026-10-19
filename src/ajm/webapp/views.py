@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from ajm.config import AppConfig
 from ajm.models import ChangeEvent
 from ajm.storage import Storage
-from subscribe import match_events
+from ajm.subscribe import match_events
 
 _FIELD_LABELS = {
     "position": "岗位",
@@ -127,7 +127,7 @@ def feed_preview(
 
     返回 ({规则名: [命中事件…]}, titles)；订阅文件未配置时第一项为空 dict。
     """
-    from subscribe import SubscriptionConfig
+    from ajm.subscribe import SubscriptionConfig
 
     sub = SubscriptionConfig.from_file(cfg.subscribe_file)
     storage = Storage(cfg.db_path)
@@ -149,8 +149,8 @@ def bench_report() -> dict:
     CLI 形态 = jobsctl bench 的打印；面板形态 = 本函数渲染。三方对账以
     report 数字为准（CLI exit 1 是当前诚实扣分项，对账测试不断言 exit==0）。
     """
-    from bench.change_cases import run_change_cases
-    from bench.truth import run_truth
+    from ajm.bench.change_cases import run_change_cases
+    from ajm.bench.truth import run_truth
 
     truth = run_truth()
     changes = [

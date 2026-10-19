@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 
 from ajm.config import AppConfig, EventKind, SourceId
+from ajm.extract.engine import extract_posting, is_recruitment
 from ajm.models import (
     ChangeEvent,
     ExtractedField,
@@ -21,7 +22,6 @@ from ajm.models import (
     strip_update_suffix,
 )
 from ajm.storage import Storage
-from extract.engine import extract_posting, is_recruitment
 
 logger = logging.getLogger(__name__)
 
