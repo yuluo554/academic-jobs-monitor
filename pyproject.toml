@@ -1,6 +1,6 @@
 [project]
 name = "ajm"
-version = "0.1.0"
+version = "0.2.0"
 description = "高校学术招聘聚合监控器：多源抓取 · 结构化字段抽取 · 快照与变更检测 · 订阅推送（零 AI 依赖）"
 authors = [{ name = "yuluo554" }]
 # PEP 639：SPDX 表达式字符串（TOML 表写法已被 setuptools 弃用，硬期限 2027-02-18）

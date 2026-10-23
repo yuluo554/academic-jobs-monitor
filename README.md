@@ -31,7 +31,7 @@ pip install -e ".[dev]"
 
 # 路径二（当产品用）：构建 wheel 后装进任意环境，不依赖源码目录
 python -m pip wheel . -w dist/ --no-deps
-pip install dist/ajm-0.1.0-py3-none-any.whl
+pip install dist/ajm-0.2.0-py3-none-any.whl
 ```
 
 ```bash
@@ -53,7 +53,19 @@ jobsctl web            # 启动本地面板（M5）
 
 ## 状态
 
-M1–M6 全部完成，v0.1.0 已发布（Release 见下表）。M7 为收尾清点与演示。
+M1–M7 全部完成，**v0.2.0 已发布**（[Release v0.2.0](https://github.com/yuluo554/academic-jobs-monitor/releases/tag/v0.2.0)）。
+
+> **v0.1.0-m6 → v0.2.0 的破坏性变更**：`requires-python` 由 `>=3.10` 抬到 **`>=3.12`**。
+> Python 3.10/3.11 上**装不上**本版。原因是 PEP 639 元数据（`license` 用 SPDX 表达式 +
+> `license-files`）要求 `setuptools>=77`（本仓构建后端是 hatchling，但生态一致口径），
+> 而现行生态里 compliance 相关依赖的最新线已集体要求 ≥3.12。若必须留在 3.10/3.11，
+> 请继续用 `v0.1.0-m6` 的源码包。
+>
+> **另一处用户可感知的变化**：五个子系统（`extract` / `bench` / `snapshot` / `subscribe` /
+> `webapp`）从 `src/` 顶层收进 `ajm` 命名空间 —— 之前 `pip install` 会把 `bench`、`extract`
+> 这类**通用名**投到 `site-packages` 顶层（与别的包撞名），现在顶层只有 `ajm`。
+> 从仓库 **clone 用 `pip install -e .` 的人不受影响**；只有 `import bench` 这类按顶层名
+> 引用旧布局的脚本需要改成 `from ajm.bench import ...`。
 
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
@@ -63,6 +75,7 @@ M1–M6 全部完成，v0.1.0 已发布（Release 见下表）。M7 为收尾清
 | M4 | 真值基准 + 订阅推送（RSS/HTML） | ✅ |
 | M5 | Web 面板 + CLI 双形态 + 技术报告 | ✅ |
 | M6 | GitHub Release 发布 | ✅ [v0.1.0-m6](https://github.com/yuluo554/academic-jobs-monitor/releases/tag/v0.1.0-m6) |
+| M7 收尾 | 命名空间收敛 + 非 editable 安装门禁 + **v0.2.0 发布** | ✅ [v0.2.0](https://github.com/yuluo554/academic-jobs-monitor/releases/tag/v0.2.0) |
 
 ## 本地 Web 面板（双形态之一）
 

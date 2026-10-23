@@ -12,7 +12,7 @@ from enum import StrEnum
 from pathlib import Path
 
 APP_NAME = "academic-jobs-monitor"
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 
 # 合规：抓取 UA 自标识（可被站点识别与联系），占位邮箱发布前替换为真实联系方式。
 USER_AGENT = (

@@ -31,7 +31,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PKG = "ajm"
-EXPECTED_VERSION = "0.1.0"
+EXPECTED_VERSION = "0.2.0"
 EXPECTED_REQUIRES_PYTHON = ">=3.12"
 # 5 个子系统 + CLI 编排层：D1 里"没进 wheel"的正是这 5 个包。
 SUBSYSTEM_MODULES = (
