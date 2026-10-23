@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """许可证元数据形态守门（PEP 639，SI-013）。
 
 背景：`license = { text = "MIT" }` / `{ file = "LICENSE" }` 这种 TOML 表形态已被
@@ -24,7 +23,6 @@ setuptools 弃用，硬期限 **2027-02-18**（实测 setuptools 84.2.1）：
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
 
 import pytest
@@ -34,7 +32,7 @@ PYPROJECT = REPO_ROOT / "pyproject.toml"
 
 
 def _load_toml(text):
-    """3.11+ 用 tomllib；更老的解释器上退回 tomli（CI 的 3.9/3.10 腿）。"""
+    """3.11+ 用 tomllib；更老的解释器上退回 tomli。"""
     try:
         import tomllib as _t  # py>=3.11
     except ImportError:  # pragma: no cover - 取决于解释器版本
@@ -52,14 +50,15 @@ def audit_pyproject(text):
     lic = project.get("license")
     if isinstance(lic, dict):
         problems.append(
-            "project.license 仍是 TOML 表形态 %r（PEP 639 已弃用，硬期限 2027-02-18）" % (lic,)
+            f"project.license 仍是 TOML 表形态 {lic!r}"
+            "（PEP 639 已弃用，硬期限 2027-02-18）"
         )
     elif not isinstance(lic, str) or not lic.strip():
-        problems.append("project.license 缺失或不是 SPDX 表达式字符串：%r" % (lic,))
+        problems.append(f"project.license 缺失或不是 SPDX 表达式字符串：{lic!r}")
 
     files = project.get("license-files")
     if files != ["LICENSE"]:
-        problems.append("project.license-files 应为 [\"LICENSE\"]，实际 %r" % (files,))
+        problems.append(f'project.license-files 应为 ["LICENSE"]，实际 {files!r}')
 
     # 不锚行首：classifiers 可能是单行数组，也可能逐行写
     if re.search(r'"License ::', text):
@@ -80,17 +79,17 @@ def audit_pyproject(text):
                 m = re.search(r">=\s*(\d+)", spec)
                 if not m or int(m.group(1)) < 77:
                     problems.append(
-                        "setuptools 下限 %r < 77 —— SPDX 字符串形态要 >=77 才生效" % (spec,)
+                        f"setuptools 下限 {spec!r} < 77 —— SPDX 字符串形态要 >=77 才生效"
                     )
 
     rp = project.get("requires-python") or ""
     m = re.search(r">=\s*(\d+)\.(\d+)", rp)
     if not m:
-        problems.append("requires-python 缺失或无法解析：%r" % (rp,))
+        problems.append(f"requires-python 缺失或无法解析：{rp!r}")
     elif (int(m.group(1)), int(m.group(2))) < (3, 9):
         problems.append(
-            "requires-python=%r < 3.9，但 setuptools>=77 要求 Python>=3.9"
-            "（实测 3.8 上最高只有 75.3.4）" % (rp,)
+            f"requires-python={rp!r} < 3.9，但 setuptools>=77 要求 Python>=3.9"
+            "（实测 3.8 上最高只有 75.3.4）"
         )
     return problems
 
@@ -128,15 +127,20 @@ def test_auditor_accepts_compliant_input():
 
 
 def test_auditor_flags_legacy_license_table():
-    bad = GOOD.replace('license = "MIT"\nlicense-files = ["LICENSE"]',
-                       'license = { text = "MIT" }')
+    bad = GOOD.replace(
+        'license = "MIT"\nlicense-files = ["LICENSE"]',
+        'license = { text = "MIT" }',
+    )
     problems = audit_pyproject(bad)
     assert any("TOML 表形态" in p for p in problems), problems
 
 
 def test_auditor_flags_license_classifier():
-    bad = GOOD.replace('license-files = ["LICENSE"]',
-                       'license-files = ["LICENSE"]\nclassifiers = ["License :: OSI Approved :: MIT License"]')
+    bad = GOOD.replace(
+        'license-files = ["LICENSE"]',
+        'license-files = ["LICENSE"]\n'
+        'classifiers = ["License :: OSI Approved :: MIT License"]',
+    )
     problems = audit_pyproject(bad)
     assert any("License ::" in p for p in problems), problems
 
